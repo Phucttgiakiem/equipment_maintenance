@@ -25,12 +25,18 @@ Phase 1 is complete once the items above are done and `npm run typecheck`, `npm 
 
 ## Phase 2 — Authentication & Authorization
 
-- [ ] NextAuth v5 Credentials provider (email + password, bcrypt compare, reject inactive users)
-- [ ] JWT session strategy carrying `userId` and `role`
-- [ ] Login page and logout action
-- [ ] Route/middleware protection for authenticated-only pages and API routes
-- [ ] Server-side role checks (admin vs technician) reusable across route handlers
-- [ ] Unit tests: credential verification, session/role checks, inactive-user rejection
+- [x] NextAuth v5 Credentials provider (email + password, bcrypt compare, reject inactive users)
+- [x] JWT session strategy carrying `userId` and `role`
+- [x] Login page and logout action
+- [x] Route/proxy (middleware) protection for authenticated-only pages and API routes
+- [x] Server-side role checks (admin vs technician) reusable across route handlers
+- [x] Unit tests: credential verification, session/role checks, inactive-user rejection
+
+Phase 2 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass.
+
+Notes:
+* Route protection uses Next.js 16's `proxy.ts` file convention (the renamed successor to `middleware.ts`).
+* `src/lib/auth/guard.ts` (`requireSession`, `requireRole`) is the reusable server-side check for Phase 3/4 route handlers.
 
 ## Phase 3 — Equipment Management
 
