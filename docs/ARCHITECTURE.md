@@ -91,7 +91,7 @@ Schema changes must follow CLAUDE.md section 8: inspect schema → check affecte
 
 * NextAuth v5 with a Credentials provider: looks up the user by email, verifies the password with `bcryptjs.compare`, rejects if `isActive` is false.
 * Session strategy: JWT (no database adapter) — keeps the auth layer simple and avoids an extra dependency, per CLAUDE.md section 18. The JWT carries `userId` and `role`; the role is read from the token on the server, never trusted from the client.
-* Route protection: server-side checks (middleware and/or per-route handler checks) verify a valid session before running any protected logic; role checks gate admin-only actions (equipment/maintenance writes, technician assignment).
+* Route protection: server-side checks (`src/proxy.ts` — Next.js 16's renamed successor to `middleware.ts` — and/or per-route handler checks via `src/lib/auth/guard.ts`) verify a valid session before running any protected logic; role checks gate admin-only actions (equipment/maintenance writes, technician assignment).
 * Secrets (`AUTH_SECRET`, `DATABASE_URL`, etc.) are supplied via environment variables (`.env`, never committed) and Docker Compose env vars; `.env.example` documents the required keys with placeholder values.
 
 ## 5. API Design
