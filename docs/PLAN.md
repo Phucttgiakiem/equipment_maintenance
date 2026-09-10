@@ -40,20 +40,34 @@ Notes:
 
 ## Phase 3 — Equipment Management
 
-- [ ] Zod validation schemas for equipment create/update
-- [ ] API routes: list (search + filter by status/category), get, create, update, delete
-- [ ] Server-side enforcement: create/update/delete admin-only, read for both roles
-- [ ] Equipment list UI with search/filter
-- [ ] Equipment create/edit form, status change control
-- [ ] Unit tests: validation, uniqueness handling, authorization rules
+- [x] Zod validation schemas for equipment create/update
+- [x] API routes: list (search + filter by status/category), get, create, update, delete
+- [x] Server-side enforcement: create/update/delete admin-only, read for both roles
+- [x] Equipment list UI with search/filter
+- [x] Equipment create/edit form, status change control
+- [x] Unit tests: validation, uniqueness handling, authorization rules
+
+Phase 3 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass.
+
+Notes:
+* `src/lib/equipment/service.ts` holds the business logic (list/get/create/update/delete); route handlers under `src/app/api/equipment/**` stay thin and use `src/lib/auth/guard.ts` for session/role checks.
+* Introduced small reusable UI primitives (`src/components/ui/button.tsx`, `form-controls.tsx`) and an equipment status badge, intended for reuse in Phase 4/5 UI.
+* Search/filter on the equipment list uses a plain GET `<form>` (server component reads `searchParams`) — no client-side JS needed for that interaction.
 
 ## Phase 4 — Maintenance Management
 
-- [ ] Zod validation schemas for maintenance create/update
-- [ ] API routes: list (by equipment/status/technician), get, create, update, delete
-- [ ] Technician assignment (admin-only) and status/notes updates (assigned technician or admin)
-- [ ] Maintenance list/detail UI, linked from equipment
-- [ ] Unit tests: validation, status transitions, authorization rules
+- [x] Zod validation schemas for maintenance create/update
+- [x] API routes: list (by equipment/status/technician), get, create, update, delete
+- [x] Technician assignment (admin-only) and status/notes updates (assigned technician or admin)
+- [x] Maintenance list/detail UI, linked from equipment
+- [x] Unit tests: validation, status transitions, authorization rules
+
+Phase 4 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass.
+
+Notes:
+* `src/lib/maintenance/authorize.ts` (`authorizeMaintenanceUpdate`) resolves whether a PATCH request gets the full admin field set or the restricted technician self-update set (status/completedDate/notes, enforced via a `.strict()` Zod schema so extra fields 400 instead of being silently dropped) — reconciles REQUIREMENTS.md sections 1 and 4 on what an assigned technician may edit.
+* Maintenance records are reached from their equipment (`/equipment/[id]` lists them and links to `/equipment/[id]/maintenance/new`); there is no separate top-level maintenance list page, per the "linked from equipment" scope.
+* `src/lib/users/service.ts` (`listActiveTechnicians`) is a small addition needed for the technician-assignment dropdown.
 
 ## Phase 5 — Dashboard
 
