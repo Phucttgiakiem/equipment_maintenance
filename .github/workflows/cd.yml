@@ -43,6 +43,16 @@ jobs:
             -t phuctranvn/equipment-maintenance-migrator:${{ steps.meta.outputs.tag }} \
             .
 
+      - name: Build seed image
+        run: |
+          docker build \
+            --target seeder \
+            -t phuctranvn/equipment-maintenance-seeder:${{ steps.meta.outputs.tag }} \
+            .
+      - name: Push seed image
+        run: |
+          docker push phuctranvn/equipment-maintenance-seeder:${{ steps.meta.outputs.tag }}
+
       - name: Push Docker images
         run: |
           docker push phuctranvn/equipment-maintenance:${{ steps.meta.outputs.tag }}
