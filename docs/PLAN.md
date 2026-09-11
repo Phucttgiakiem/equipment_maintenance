@@ -87,9 +87,18 @@ Notes:
 
 ## Phase 6 — Polish & Hardening
 
-- [ ] Consistent loading/error/empty states across list and form views
-- [ ] Accessibility pass on forms and navigation
-- [ ] Final review against CLAUDE.md Definition of Done (typecheck, lint, tests, build, no secrets, no scope creep)
+- [x] Consistent loading/error/empty states across list and form views
+- [x] Accessibility pass on forms and navigation
+- [x] Final review against CLAUDE.md Definition of Done (typecheck, lint, tests, build, no secrets, no scope creep)
+
+Phase 6 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass. Manually verified against a seeded local database, including a full production run via the standalone server build (as `Dockerfile` runs it).
+
+Notes:
+* Loading states: `src/components/ui/loading.tsx` (`LoadingState`, `role="status"`/`aria-live="polite"`) backs three route-level `loading.tsx` files — `src/app/loading.tsx` (dashboard), `src/app/equipment/loading.tsx` (covers the whole `/equipment/**` subtree, since a segment's `loading.tsx` wraps all nested routes), and `src/app/maintenance/[id]/loading.tsx`. No `loading.tsx` was needed elsewhere.
+* Error states: `src/app/error.tsx` (root error boundary, generic message only — no `error.message`/stack shown to the client, per CLAUDE.md section 13) and `src/app/not-found.tsx` (styled 404, replacing the Next.js default) were added; existing inline form/field error states (`FormField`, `ConfirmDeleteButton`, login) were already consistent and untouched.
+* Empty states (equipment list, equipment's maintenance list, dashboard's recent activity) were already consistent; no changes needed.
+* Accessibility: added a "skip to main content" link and a `<main id="main-content">` landmark in `src/app/layout.tsx`; nav now uses `src/components/nav-link.tsx` (`aria-current="page"` on the active link) and the `<nav>` has `aria-label="Primary"`; data table headers got `scope="col"`; `FormField` (`src/components/ui/form-controls.tsx`) now wires `aria-invalid`/`aria-describedby` from field errors onto its child control via `cloneElement`; focus-visible rings were added to `buttonClasses` and form field classes (both previously suppressed the native outline on focus without a visible replacement).
+* Known issue (pre-existing, not introduced by this phase): calling `notFound()` from a dynamic route (e.g. `/equipment/[id]` with an unknown id) renders the correct not-found content but the response status stays 200 instead of 404, verified against the real standalone production server. A genuinely unmatched route (e.g. a typo'd URL) correctly returns 404. Left unfixed per CLAUDE.md section 20 (out of Phase 6's scope; investigate separately if it starts to matter, e.g. for SEO or API consumers).
 
 ---
 

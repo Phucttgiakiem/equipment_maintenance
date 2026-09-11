@@ -99,12 +99,12 @@ export default async function EquipmentPage({
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Code</th>
-                <th className="px-4 py-3 font-medium">Category</th>
-                <th className="px-4 py-3 font-medium">Location</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                {isAdmin ? <th className="px-4 py-3 font-medium">Actions</th> : null}
+                <th scope="col" className="px-4 py-3 font-medium">Name</th>
+                <th scope="col" className="px-4 py-3 font-medium">Code</th>
+                <th scope="col" className="px-4 py-3 font-medium">Category</th>
+                <th scope="col" className="px-4 py-3 font-medium">Location</th>
+                <th scope="col" className="px-4 py-3 font-medium">Status</th>
+                {isAdmin ? <th scope="col" className="px-4 py-3 font-medium">Actions</th> : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
