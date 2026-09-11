@@ -28,17 +28,26 @@ jobs:
         id: meta
         run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Build Docker image
+      - name: Build app image
         run: |
           docker build \
+            --target runner \
             -t phuctranvn/equipment-maintenance:${{ steps.meta.outputs.tag }} \
             -t phuctranvn/equipment-maintenance:latest \
             .
 
-      - name: Push Docker image
+      - name: Build migration image
+        run: |
+          docker build \
+            --target migrator \
+            -t phuctranvn/equipment-maintenance-migrator:${{ steps.meta.outputs.tag }} \
+            .
+
+      - name: Push Docker images
         run: |
           docker push phuctranvn/equipment-maintenance:${{ steps.meta.outputs.tag }}
           docker push phuctranvn/equipment-maintenance:latest
+          docker push phuctranvn/equipment-maintenance-migrator:${{ steps.meta.outputs.tag }}
 
       - name: Deploy to Azure VPS
         uses: appleboy/ssh-action@v1.2.0
@@ -48,7 +57,11 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd ~/equipment-maintenance
+
             export IMAGE_TAG=${{ steps.meta.outputs.tag }}
+
             docker compose pull app
+
             docker compose up -d
+
             docker image prune -f
