@@ -36,6 +36,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                 Maintenance Management
               </span>
               <Link
+                href="/"
+                className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+              >
+                Dashboard
+              </Link>
+              <Link
                 href="/equipment"
                 className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
               >

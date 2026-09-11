@@ -71,11 +71,19 @@ Notes:
 
 ## Phase 5 — Dashboard
 
-- [ ] Equipment statistics (counts by status, total)
-- [ ] Maintenance statistics (counts by status, by type)
-- [ ] Recent activity feed
-- [ ] Dashboard UI assembling the above
-- [ ] Unit tests: statistics aggregation logic
+- [x] Equipment statistics (counts by status, total)
+- [x] Maintenance statistics (counts by status, by type)
+- [x] Recent activity feed
+- [x] Dashboard UI assembling the above
+- [x] Unit tests: statistics aggregation logic
+
+Phase 5 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass. Manually verified against a seeded local database (empty state and populated state, via `/api/dashboard` and the rendered `/` page).
+
+Notes:
+* `src/lib/dashboard/service.ts` holds the aggregation logic (`getEquipmentStatistics`, `getMaintenanceStatistics`, `getRecentActivity`); counts are zero-filled for every enum value so the UI never has to guard against missing keys.
+* The dashboard replaces the placeholder Next.js template at `src/app/page.tsx` — it's the first page a logged-in user lands on (`/` is already protected by `proxy.ts`, and login's default `callbackUrl` is `/`).
+* `GET /api/dashboard` (`src/app/api/dashboard/route.ts`) exposes the same data per `docs/ARCHITECTURE.md` section 5, but the page itself calls the service functions directly, consistent with how the equipment/maintenance list pages read data.
+* Recent activity is maintenance records joined with their equipment name, ordered by `updatedAt` descending — the simplest reading of REQUIREMENTS.md section 5's "maintenance records (and equipment where relevant)".
 
 ## Phase 6 — Polish & Hardening
 
