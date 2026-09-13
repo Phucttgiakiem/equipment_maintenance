@@ -43,6 +43,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               </span>
               <NavLink href="/">Dashboard</NavLink>
               <NavLink href="/equipment">Equipment</NavLink>
+              {session.user.role === "admin" ? (
+                <NavLink href="/admin/users">Users</NavLink>
+              ) : null}
             </nav>
             <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
               <span>

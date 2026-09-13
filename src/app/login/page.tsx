@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
@@ -106,6 +107,16 @@ function LoginForm() {
           >
             {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
+
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Need an account?{" "}
+            <Link
+              href="/register"
+              className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+            >
+              Register
+            </Link>
+          </p>
         </form>
       </div>
     </div>

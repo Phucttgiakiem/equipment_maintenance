@@ -40,6 +40,7 @@ Defined in `src/db/schema.ts`, PostgreSQL via Drizzle.
 * `equipment_status`: `operational`, `under_maintenance`, `out_of_service`, `retired`
 * `maintenance_status`: `scheduled`, `in_progress`, `completed`, `cancelled`
 * `maintenance_type`: `preventive`, `corrective`, `inspection`
+* `registration_status`: `pending`, `approved`, `rejected`
 
 ### Tables
 
@@ -52,7 +53,10 @@ Defined in `src/db/schema.ts`, PostgreSQL via Drizzle.
 | password_hash | text | bcrypt hash |
 | role | user_role | default `technician` |
 | is_active | boolean | default `true` |
+| registration_status | registration_status | default `approved` |
 | created_at / updated_at | timestamptz | default now |
+
+Self-registered accounts are created with `registration_status: pending` and `is_active: false`. Accounts created via seed data or directly by an admin default to `approved`/active, so the column's default keeps existing rows unaffected.
 
 **`equipment`**
 | column | type | notes |
@@ -91,14 +95,21 @@ Schema changes must follow CLAUDE.md section 8: inspect schema → check affecte
 
 * NextAuth v5 with a Credentials provider: looks up the user by email, verifies the password with `bcryptjs.compare`, rejects if `isActive` is false.
 * Session strategy: JWT (no database adapter) — keeps the auth layer simple and avoids an extra dependency, per CLAUDE.md section 18. The JWT carries `userId` and `role`; the role is read from the token on the server, never trusted from the client.
-* Route protection: server-side checks (`src/proxy.ts` — Next.js 16's renamed successor to `middleware.ts` — and/or per-route handler checks via `src/lib/auth/guard.ts`) verify a valid session before running any protected logic; role checks gate admin-only actions (equipment/maintenance writes, technician assignment).
+* Route protection: server-side checks (`src/proxy.ts` — Next.js 16's renamed successor to `middleware.ts` — and/or per-route handler checks via `src/lib/auth/guard.ts`) verify a valid session before running any protected logic; role checks gate admin-only actions (equipment/maintenance writes, technician assignment, user management).
 * Secrets (`AUTH_SECRET`, `DATABASE_URL`, etc.) are supplied via environment variables (`.env`, never committed) and Docker Compose env vars; `.env.example` documents the required keys with placeholder values.
+* **Login gate for pending/rejected/inactive users**: `verifyCredentials` already rejects any user with `isActive = false` before comparing passwords. Since `pending` and `rejected` registrations are `isActive = false` by construction, blocking their login is a consequence of this existing check, not a new code path.
+* **Registration flow**: `POST /api/auth/register` is the only public (unauthenticated) write endpoint in the app. It accepts name/email/password only, validated with a `.strict()` Zod schema (same pattern as `loginSchema` and the maintenance technician self-update schema) so a client-supplied `role` or any other field is rejected with 400 rather than ignored. The created row is always `role: technician`, `registrationStatus: pending`, `isActive: false`.
+* **Approval/rejection flow**: only an admin (`requireRole(["admin"])`) may approve or reject a `pending` registration. Approve sets `registrationStatus: approved` and `isActive: true`. Reject sets `registrationStatus: rejected` and leaves `isActive: false`. Both are valid only when the target's current `registrationStatus` is `pending`; calling either on a non-pending user returns 409 Conflict.
+* **Activation/deactivation flow**: separate from approval — only applies to already-`approved` users. Admin-only. Deactivate sets `isActive: false` without touching `registrationStatus`; activate reverses it. An admin cannot deactivate their own account (403).
+* **Role management**: admin-only, changes `role` between `admin`/`technician` on any existing user. An admin cannot change their own role (403). A user can never change their own role through any endpoint.
+* **Server-side RBAC**: every user-management action (list with filters, approve, reject, activate, deactivate, change role) is gated by `requireRole(["admin"])` from `src/lib/auth/guard.ts` — the same guard already used for equipment/maintenance admin-only actions. No new authorization primitive is introduced.
 
 ## 5. API Design
 
-* Route handlers live under `src/app/api/**`, one resource per route segment (e.g. `api/equipment`, `api/equipment/[id]`, `api/maintenance`, `api/maintenance/[id]`, `api/dashboard`).
+* Route handlers live under `src/app/api/**`, one resource per route segment (e.g. `api/equipment`, `api/equipment/[id]`, `api/maintenance`, `api/maintenance/[id]`, `api/dashboard`, `api/auth/register` (public), `api/users` (admin-only list), `api/users/[id]/approve`, `api/users/[id]/reject`, `api/users/[id]/activate`, `api/users/[id]/deactivate`, `api/users/[id]/role`).
 * Every handler: validates input with Zod, authenticates the session, authorizes the action against the user's role, performs the DB operation via Drizzle, and returns a predictable JSON shape with the correct HTTP status.
 * Errors follow a consistent shape (e.g. `{ error: string }`) and never leak stack traces, credentials, or internal details (CLAUDE.md section 13).
+* User-management business logic lives in `src/lib/users/service.ts` (already home to `listActiveTechnicians`), extended with `listUsers` (filter by `registrationStatus`/`role`/`isActive`), `registerUser`, `approveUser`, `rejectUser`, `activateUser`, `deactivateUser`, and `changeUserRole`. Conflict/guard conditions are custom `Error` subclasses caught in the route handler and mapped to HTTP status, matching `EquipmentCodeConflictError`'s pattern: a duplicate registration email and an approve/reject call on a non-`pending` user both map to 409; an admin acting on their own account for deactivate/role-change maps to 403. Validation schemas live in a new `src/lib/users/schema.ts`, alongside the existing `src/lib/auth/schema.ts` (`loginSchema`).
 
 ## 6. Docker
 
