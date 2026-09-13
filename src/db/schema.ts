@@ -11,6 +11,12 @@ import {
 
 export const userRoleEnum = pgEnum("user_role", ["admin", "technician"]);
 
+export const registrationStatusEnum = pgEnum("registration_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
 export const equipmentStatusEnum = pgEnum("equipment_status", [
   "operational",
   "under_maintenance",
@@ -38,6 +44,9 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   role: userRoleEnum("role").notNull().default("technician"),
   isActive: boolean("is_active").notNull().default(true),
+  registrationStatus: registrationStatusEnum("registration_status")
+    .notNull()
+    .default("approved"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

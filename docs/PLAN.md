@@ -100,6 +100,29 @@ Notes:
 * Accessibility: added a "skip to main content" link and a `<main id="main-content">` landmark in `src/app/layout.tsx`; nav now uses `src/components/nav-link.tsx` (`aria-current="page"` on the active link) and the `<nav>` has `aria-label="Primary"`; data table headers got `scope="col"`; `FormField` (`src/components/ui/form-controls.tsx`) now wires `aria-invalid`/`aria-describedby` from field errors onto its child control via `cloneElement`; focus-visible rings were added to `buttonClasses` and form field classes (both previously suppressed the native outline on focus without a visible replacement).
 * Known issue (pre-existing, not introduced by this phase): calling `notFound()` from a dynamic route (e.g. `/equipment/[id]` with an unknown id) renders the correct not-found content but the response status stays 200 instead of 404, verified against the real standalone production server. A genuinely unmatched route (e.g. a typo'd URL) correctly returns 404. Left unfixed per CLAUDE.md section 20 (out of Phase 6's scope; investigate separately if it starts to matter, e.g. for SEO or API consumers).
 
+## Phase 7 — User Management (Registration & Approval)
+
+Expands MVP scope per `docs/REQUIREMENTS.md` sections 1–3.
+
+- [x] Schema: added a `registration_status` enum (`pending`, `approved`, `rejected`) and column on `users` (default `approved`, so existing/seeded rows are unaffected); new self-registered rows are created `pending`. Generated and applied a Drizzle migration (`drizzle/0001_uneven_blink.sql`).
+- [x] Zod schema for self-registration (name, email, password) using `.strict()` so a client-supplied `role` (or any other extra field) is rejected with 400, not ignored — same pattern as `authorizeMaintenanceUpdate`'s technician self-update schema (see Phase 4 notes).
+- [x] `POST /api/auth/register` (public route): creates a user with role `technician`, `registrationStatus: "pending"`, `isActive: false`; rejects duplicate emails with a clear validation error.
+- [x] Admin-only user-management API routes: list users (filterable by registration status/role/active), approve, reject, activate, deactivate, change role. All server-side, admin-only, following the existing thin-route-handler + `src/lib/*/service.ts` pattern.
+- [x] Extended `src/lib/users/service.ts` (previously just `listActiveTechnicians`) with the registration/approval/activation/role-change business logic; reuses `src/lib/auth/guard.ts` for session/role checks.
+- [x] Confirmed the existing NextAuth Credentials check (`isActive` must be true) already covers `pending` and `rejected` accounts with no separate code path — pending/rejected users are `isActive = false` by construction; already exercised by `verify-credentials.test.ts`'s inactive-user case.
+- [x] Server-side guard preventing an admin from deactivating or changing the role of their own account (REQUIREMENTS.md section 3).
+- [x] UI: public registration page (`/register`); admin user-management page (`/admin/users`, admin-only, redirects non-admins) with filters, approve/reject on pending registrations, activate/deactivate, and a role-change select per row.
+- [x] Unit tests: registration validation (including rejection of a client-supplied `role`), duplicate-email handling, approve/reject transitions, activate/deactivate, role assignment, and authorization guards (self-deactivation/self-role-change, invalid state transitions).
+- [x] `docs/ARCHITECTURE.md` already documented the users table columns, new API routes, and auth section ahead of this implementation; verified the implementation matches it.
+
+Phase 7 is complete: `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` all pass.
+
+Notes:
+* Action-style routes (`/api/users/[id]/approve`, `/reject`, `/activate`, `/deactivate`) are POST with no body, following `docs/ARCHITECTURE.md` section 5's route list; role change is `PATCH /api/users/[id]/role` since it takes a body.
+* Activate/deactivate both require the target's `registrationStatus` to be `approved` (`InvalidRegistrationStateError`, 409) — a pending/rejected account must go through approve first, matching REQUIREMENTS.md section 3's framing of activation/deactivation as an approved-user-only action.
+* `src/lib/users/service.ts` selects/returns a fixed `userColumns` projection everywhere (including on `insert(...).returning()` and `update(...).returning()`) so `passwordHash` never reaches a route handler's JSON response.
+* Manual verification against a running Postgres instance (`docker compose up db`, migrate, seed, exercise `/register` and `/admin/users` in the browser) was not completed this session — Docker Desktop would not stay running in this environment. Automated checks (typecheck/lint/test/build) all pass; a manual pass is recommended before merging.
+
 ---
 
 ## Notes

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const PUBLIC_PAGE_PATHS = ["/login"];
+const PUBLIC_PAGE_PATHS = ["/login", "/register"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
