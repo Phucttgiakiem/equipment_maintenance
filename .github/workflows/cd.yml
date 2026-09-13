@@ -64,6 +64,8 @@ jobs:
           username: azureuser
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
+
             cd ~/equipment-maintenance
 
             export IMAGE_TAG=${{ steps.meta.outputs.tag }}
@@ -75,9 +77,15 @@ jobs:
             docker pull phuctranvn/equipment-maintenance-migrator:${IMAGE_TAG}
 
             echo "Running database migrations..."
+            set -a
+            . ./.env
+            set +a
+
+            export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
+
             docker run --rm \
               --network equipment-maintenance_default \
-              --env-file .env \
+              -e DATABASE_URL="$DATABASE_URL" \
               phuctranvn/equipment-maintenance-migrator:${IMAGE_TAG}
 
             echo "Starting application..."
