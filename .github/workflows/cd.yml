@@ -49,15 +49,13 @@ jobs:
             --target seeder \
             -t phuctranvn/equipment-maintenance-seeder:${{ steps.meta.outputs.tag }} \
             .
-      - name: Push seed image
-        run: |
-          docker push phuctranvn/equipment-maintenance-seeder:${{ steps.meta.outputs.tag }}
 
       - name: Push Docker images
         run: |
           docker push phuctranvn/equipment-maintenance:${{ steps.meta.outputs.tag }}
           docker push phuctranvn/equipment-maintenance:latest
           docker push phuctranvn/equipment-maintenance-migrator:${{ steps.meta.outputs.tag }}
+          docker push phuctranvn/equipment-maintenance-seeder:${{ steps.meta.outputs.tag }}
 
       - name: Deploy to Azure VPS
         uses: appleboy/ssh-action@v1.2.0
@@ -70,8 +68,20 @@ jobs:
 
             export IMAGE_TAG=${{ steps.meta.outputs.tag }}
 
+            echo "Pulling application image..."
             docker compose pull app
 
+            echo "Pulling migration image..."
+            docker pull phuctranvn/equipment-maintenance-migrator:${IMAGE_TAG}
+
+            echo "Running database migrations..."
+            docker run --rm \
+              --network equipment-maintenance_default \
+              --env-file .env \
+              phuctranvn/equipment-maintenance-migrator:${IMAGE_TAG}
+
+            echo "Starting application..."
             docker compose up -d
 
+            echo "Cleaning unused images..."
             docker image prune -f
