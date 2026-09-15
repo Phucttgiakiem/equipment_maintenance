@@ -1,4 +1,4 @@
-import { changeRoleSchema, registerSchema, userListQuerySchema } from "./schema";
+import { registerSchema, userListQuerySchema } from "./schema";
 
 describe("registerSchema", () => {
   it("accepts a valid name/email/password payload", () => {
@@ -107,41 +107,6 @@ describe("userListQuerySchema", () => {
 
     // Act
     const result = userListQuerySchema.safeParse(input);
-
-    // Assert
-    expect(result.success).toBe(false);
-  });
-});
-
-describe("changeRoleSchema", () => {
-  it("accepts a valid role", () => {
-    // Arrange
-    const input = { role: "admin" };
-
-    // Act
-    const result = changeRoleSchema.safeParse(input);
-
-    // Assert
-    expect(result.success).toBe(true);
-  });
-
-  it("rejects an invalid role", () => {
-    // Arrange
-    const input = { role: "superadmin" };
-
-    // Act
-    const result = changeRoleSchema.safeParse(input);
-
-    // Assert
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects an unexpected extra field", () => {
-    // Arrange
-    const input = { role: "admin", isActive: true };
-
-    // Act
-    const result = changeRoleSchema.safeParse(input);
 
     // Assert
     expect(result.success).toBe(false);

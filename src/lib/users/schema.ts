@@ -26,12 +26,5 @@ export const userListQuerySchema = z.object({
     .optional(),
 });
 
-export const changeRoleSchema = z
-  .object({
-    role: z.enum(userRoleValues),
-  })
-  .strict();
-
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type UserListQuery = z.infer<typeof userListQuerySchema>;
-export type ChangeRoleInput = z.infer<typeof changeRoleSchema>;

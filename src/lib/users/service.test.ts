@@ -32,7 +32,6 @@ import {
   SelfActionError,
   activateUser,
   approveUser,
-  changeUserRole,
   deactivateUser,
   registerUser,
   rejectUser,
@@ -243,36 +242,6 @@ describe("deactivateUser", () => {
 
     // Assert
     await expect(act).rejects.toBeInstanceOf(InvalidRegistrationStateError);
-    expect(mockDb.update).not.toHaveBeenCalled();
-  });
-});
-
-describe("changeUserRole", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("changes another user's role", async () => {
-    // Arrange
-    const updated = makeUser({ id: "user-2", role: "admin" });
-    mockDb.update.mockReturnValue(createChainable([updated]));
-
-    // Act
-    const result = await changeUserRole(makeUser({ id: "user-2" }), "admin", "admin-1");
-
-    // Assert
-    expect(result).toEqual(updated);
-  });
-
-  it("throws SelfActionError when an admin targets their own account", async () => {
-    // Arrange
-    const user = makeUser({ id: "admin-1" });
-
-    // Act
-    const act = changeUserRole(user, "technician", "admin-1");
-
-    // Assert
-    await expect(act).rejects.toBeInstanceOf(SelfActionError);
     expect(mockDb.update).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,6 @@ import { buttonClasses } from "@/components/ui/button";
 import { Label, Select } from "@/components/ui/form-controls";
 import { RegistrationStatusBadge } from "@/components/users/registration-status-badge";
 import { UserActionButton } from "@/components/users/user-action-button";
-import { UserRoleSelect } from "@/components/users/user-role-select";
 import { registrationStatusValues, userRoleValues } from "@/lib/users/schema";
 import { listUsers } from "@/lib/users/service";
 
@@ -127,9 +126,7 @@ export default async function AdminUsersPage({
                       {isSelf ? " (you)" : ""}
                     </td>
                     <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.email}</td>
-                    <td className="px-4 py-3">
-                      <UserRoleSelect userId={item.id} role={item.role} disabled={isSelf} />
-                    </td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.role}</td>
                     <td className="px-4 py-3">
                       <RegistrationStatusBadge status={item.registrationStatus} />
                     </td>
