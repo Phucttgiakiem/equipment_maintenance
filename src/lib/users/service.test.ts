@@ -26,15 +26,19 @@ const mockDb = {
 
 jest.mock("@/db", () => ({ db: mockDb }));
 
+import bcrypt from "bcryptjs";
 import {
   EmailConflictError,
+  InvalidCurrentPasswordError,
   InvalidRegistrationStateError,
   SelfActionError,
   activateUser,
   approveUser,
+  changePassword,
   deactivateUser,
   registerUser,
   rejectUser,
+  resetPassword,
 } from "./service";
 
 function makeUser(overrides: Partial<{
@@ -71,6 +75,7 @@ describe("registerUser", () => {
       name: "Jamie Tech",
       email: "jamie@example.com",
       password: "password123",
+      confirmPassword: "password123",
     });
 
     // Assert
@@ -86,6 +91,7 @@ describe("registerUser", () => {
       name: "Jamie Tech",
       email: "jamie@example.com",
       password: "password123",
+      confirmPassword: "password123",
     });
 
     // Assert
@@ -102,6 +108,7 @@ describe("registerUser", () => {
       name: "Jamie Tech",
       email: "jamie@example.com",
       password: "password123",
+      confirmPassword: "password123",
     });
 
     // Assert
@@ -242,6 +249,80 @@ describe("deactivateUser", () => {
 
     // Assert
     await expect(act).rejects.toBeInstanceOf(InvalidRegistrationStateError);
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("changePassword", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("updates the password hash when the current password is correct", async () => {
+    // Arrange
+    const passwordHash = await bcrypt.hash("oldpassword1", 10);
+    mockDb.select.mockReturnValue(createChainable([{ passwordHash }]));
+    mockDb.update.mockReturnValue(createChainable([]));
+
+    // Act
+    await changePassword("user-1", "oldpassword1", "newpassword1");
+
+    // Assert
+    expect(mockDb.update).toHaveBeenCalled();
+  });
+
+  it("throws InvalidCurrentPasswordError when the current password is wrong", async () => {
+    // Arrange
+    const passwordHash = await bcrypt.hash("actualpassword1", 10);
+    mockDb.select.mockReturnValue(createChainable([{ passwordHash }]));
+
+    // Act
+    const act = changePassword("user-1", "wrongpassword", "newpassword1");
+
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(InvalidCurrentPasswordError);
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+
+  it("throws InvalidCurrentPasswordError when the user record is not found", async () => {
+    // Arrange
+    mockDb.select.mockReturnValue(createChainable([]));
+
+    // Act
+    const act = changePassword("missing-user", "anypassword", "newpassword1");
+
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(InvalidCurrentPasswordError);
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("resetPassword", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("sets a new password hash for another user", async () => {
+    // Arrange
+    const updated = makeUser({ id: "user-2" });
+    mockDb.update.mockReturnValue(createChainable([updated]));
+
+    // Act
+    const result = await resetPassword(makeUser({ id: "user-2" }), "temppassword1", "admin-1");
+
+    // Assert
+    expect(result).toEqual(updated);
+  });
+
+  it("throws SelfActionError when an admin targets their own account", async () => {
+    // Arrange
+    const user = makeUser({ id: "admin-1" });
+
+    // Act
+    const act = resetPassword(user, "temppassword1", "admin-1");
+
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(SelfActionError);
     expect(mockDb.update).not.toHaveBeenCalled();
   });
 });

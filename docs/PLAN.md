@@ -142,16 +142,24 @@ Notes:
 
 ## Phase 9 — Password Management
 
-Status: Not started.
-
 Implements `docs/REQUIREMENTS.md` section 4 and the password-management design in `docs/ARCHITECTURE.md` section 4.
 
-- [ ] Show/hide toggle on the login page's password field
-- [ ] Show/hide toggles on the sign-up page's password and confirm-password fields
-- [ ] Self-service change-password: API route, service function (verify current password, validate new password, confirm match), UI form
-- [ ] Admin reset-password-for-another-user: API route, service function (never reads back the old hash), UI action on `/admin/users`
-- [ ] Unit tests: current-password verification failure, new-password validation, confirmation mismatch, admin reset happy path and authorization (admin-only)
-- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+- [x] Show/hide toggle on the login page's password field
+- [x] Show/hide toggles on the sign-up page's password and confirm-password fields
+- [x] Self-service change-password: API route, service function (verify current password, validate new password, confirm match), UI form
+- [x] Admin reset-password-for-another-user: API route, service function (never reads back the old hash), UI action on `/admin/users`
+- [x] Unit tests: current-password verification failure, new-password validation, confirmation mismatch, admin reset happy path and authorization (admin-only)
+- [x] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+Phase 9 is complete: `npm run typecheck`, `npm run lint`, `npm test` (100 tests, 12 suites), and `npm run build` all pass. Manually verified via the dev server: login/register pages render the show/hide control and confirm-password field, and `POST /api/auth/register` correctly rejects a password/confirm-password mismatch with a `confirmPassword` field error.
+
+Notes:
+* `src/components/ui/password-input.tsx` (`PasswordInput`) wraps the existing `Input` primitive with a text-label show/hide toggle button (no icon library added, per CLAUDE.md section 18); used on the login, register, and new self-service change-password pages.
+* `registerSchema` (`src/lib/users/schema.ts`) now requires `confirmPassword` and `.refine()`s that it matches `password` (REQUIREMENTS.md §3, previously undocumented-but-unimplemented) — this was necessary for the sign-up page's new confirm-password field to have any validation effect, so it was included in this phase rather than deferred. A shared `passwordSchema` (min 8 characters) is reused by `registerSchema`, the new `changePasswordSchema`, and `resetPasswordSchema`.
+* `src/lib/users/service.ts` adds `changePassword` (verifies the current password via `bcrypt.compare` against a direct `passwordHash` select, never routed through the `userColumns`-projected `UserSummary` type) and `resetPassword` (admin-only write path; blocks self-targeting via the existing `SelfActionError`, since an admin resetting their own password would bypass the current-password check that the self-service flow requires).
+* New routes: `PATCH /api/users/me/password` (self-service, any authenticated user) and `POST /api/users/[id]/reset-password` (admin-only), both following the existing thin-route-handler pattern.
+* New page `/account/password` (self-service change-password form) linked from a "Change password" entry next to the user's name in the header (`src/app/layout.tsx`); no dedicated nav section existed for account actions, so it was added alongside the existing sign-out control rather than as a primary nav item.
+* Admin reset-password UI (`src/components/users/reset-password-button.tsx`) uses `window.prompt` for the temporary password, consistent with the existing `window.confirm`-based pattern in `UserActionButton`/`ConfirmDeleteButton` rather than introducing a modal component that nothing else in the project uses yet.
 
 ## Phase 10 — Category Master Data
 
