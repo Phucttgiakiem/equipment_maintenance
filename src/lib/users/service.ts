@@ -28,6 +28,13 @@ export class SelfActionError extends Error {
   }
 }
 
+export class InvalidCurrentPasswordError extends Error {
+  constructor() {
+    super("Current password is incorrect");
+    this.name = "InvalidCurrentPasswordError";
+  }
+}
+
 function isUniqueViolation(error: unknown): boolean {
   return (
     typeof error === "object" &&
@@ -179,6 +186,57 @@ export async function deactivateUser(
   const [record] = await db
     .update(users)
     .set({ isActive: false, updatedAt: new Date() })
+    .where(eq(users.id, user.id))
+    .returning(userColumns);
+  return record;
+}
+
+/**
+ * Self-service change: verifies the caller's current password before
+ * re-hashing and storing the new one (REQUIREMENTS.md §4).
+ */
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const [record] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const isValid = !!record && (await bcrypt.compare(currentPassword, record.passwordHash));
+  if (!isValid) {
+    throw new InvalidCurrentPasswordError();
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+/**
+ * Admin-assisted reset for another user's forgotten password. Write-only
+ * with respect to the password field — the old hash is never read back
+ * (REQUIREMENTS.md §4). An admin must use `changePassword` on their own
+ * account, hence the self-action guard.
+ */
+export async function resetPassword(
+  user: UserSummary,
+  newPassword: string,
+  actingUserId: string,
+): Promise<UserSummary> {
+  if (user.id === actingUserId) {
+    throw new SelfActionError("Use the change-password flow to update your own password");
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  const [record] = await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
     .where(eq(users.id, user.id))
     .returning(userColumns);
   return record;

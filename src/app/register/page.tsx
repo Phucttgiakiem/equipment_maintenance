@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { FormField, Input } from "@/components/ui/form-controls";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,7 +25,7 @@ export default function RegisterPage() {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, confirmPassword }),
     });
 
     setIsSubmitting(false);
@@ -85,13 +87,26 @@ export default function RegisterPage() {
             </FormField>
 
             <FormField label="Password" htmlFor="password" error={fieldErrors.password?.[0]}>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 autoComplete="new-password"
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+              />
+            </FormField>
+
+            <FormField
+              label="Confirm password"
+              htmlFor="confirmPassword"
+              error={fieldErrors.confirmPassword?.[0]}
+            >
+              <PasswordInput
+                id="confirmPassword"
+                autoComplete="new-password"
+                required
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
               />
             </FormField>
 

@@ -51,6 +51,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
               <span>
                 {session.user.name} ({session.user.role})
               </span>
+              <NavLink href="/account/password">Change password</NavLink>
               <LogoutButton />
             </div>
           </header>

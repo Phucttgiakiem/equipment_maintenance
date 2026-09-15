@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { buttonClasses } from "@/components/ui/button";
 import { Label, Select } from "@/components/ui/form-controls";
 import { RegistrationStatusBadge } from "@/components/users/registration-status-badge";
+import { ResetPasswordButton } from "@/components/users/reset-password-button";
 import { UserActionButton } from "@/components/users/user-action-button";
 import { registrationStatusValues, userRoleValues } from "@/lib/users/schema";
 import { listUsers } from "@/lib/users/service";
@@ -169,6 +170,9 @@ export default async function AdminUsersPage({
                               variant="primary"
                             />
                           )
+                        ) : null}
+                        {!isSelf ? (
+                          <ResetPasswordButton userId={item.id} userName={item.name} />
                         ) : null}
                       </div>
                     </td>

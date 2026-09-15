@@ -4,6 +4,8 @@ import { registrationStatusEnum, userRoleEnum } from "@/db/schema";
 export const registrationStatusValues = registrationStatusEnum.enumValues;
 export const userRoleValues = userRoleEnum.enumValues;
 
+export const passwordSchema = z.string().min(8, "Password must be at least 8 characters");
+
 /**
  * `.strict()` rejects a client-supplied `role` (or any other extra field)
  * with a 400 instead of silently dropping it — the only mechanism blocking
@@ -13,7 +15,30 @@ export const registerSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").max(120),
     email: z.string().trim().toLowerCase().email(),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .strict()
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .strict()
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: passwordSchema,
   })
   .strict();
 
@@ -28,3 +53,5 @@ export const userListQuerySchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type UserListQuery = z.infer<typeof userListQuerySchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
