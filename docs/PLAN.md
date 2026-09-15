@@ -123,9 +123,85 @@ Notes:
 * `src/lib/users/service.ts` selects/returns a fixed `userColumns` projection everywhere (including on `insert(...).returning()` and `update(...).returning()`) so `passwordHash` never reaches a route handler's JSON response.
 * Manual verification against a running Postgres instance (`docker compose up db`, migrate, seed, exercise `/register` and `/admin/users` in the browser) was not completed this session — Docker Desktop would not stay running in this environment. Automated checks (typecheck/lint/test/build) all pass; a manual pass is recommended before merging.
 
+## Phase 8 — Access Model Cleanup
+
+Removes the role-change capability so the access model matches `docs/REQUIREMENTS.md` section 1 and `docs/ARCHITECTURE.md` section 4 (a user's role is fixed at creation, with no change path).
+
+- [x] Remove `PATCH /api/users/[id]/role` route
+- [x] Remove `changeUserRole` from `src/lib/users/service.ts` (and the now-unused `changeRoleSchema` from `src/lib/users/schema.ts`)
+- [x] Remove the `UserRoleSelect` UI component and its use on `/admin/users`
+- [x] Remove/update unit tests that exercised role-change (service and schema tests)
+- [x] Confirm the remaining registration/approval/activation flows are unaffected and still pass their existing tests
+- [x] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+Phase 8 is complete: `npm run typecheck`, `npm run lint`, `npm test` (86 tests, 12 suites), and `npm run build` all pass.
+
+Notes:
+* `/admin/users` now renders each user's role as plain text (`item.role`) instead of the removed `UserRoleSelect` dropdown; the role column is otherwise unchanged.
+* `SelfActionError` in `src/lib/users/service.ts` is still used by `deactivateUser` (self-deactivation guard), so it was kept.
+
+## Phase 9 — Password Management
+
+Status: Not started.
+
+Implements `docs/REQUIREMENTS.md` section 4 and the password-management design in `docs/ARCHITECTURE.md` section 4.
+
+- [ ] Show/hide toggle on the login page's password field
+- [ ] Show/hide toggles on the sign-up page's password and confirm-password fields
+- [ ] Self-service change-password: API route, service function (verify current password, validate new password, confirm match), UI form
+- [ ] Admin reset-password-for-another-user: API route, service function (never reads back the old hash), UI action on `/admin/users`
+- [ ] Unit tests: current-password verification failure, new-password validation, confirmation mismatch, admin reset happy path and authorization (admin-only)
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+## Phase 10 — Category Master Data
+
+Status: Not started.
+
+Implements `docs/REQUIREMENTS.md` section 5 and the schema/API design in `docs/ARCHITECTURE.md` sections 3 and 7.
+
+- [ ] `categories` table + Drizzle migration; `equipment.category` (free-text) replaced with `equipment.category_id` (nullable FK to `categories.id`)
+- [ ] Category service (list/create/edit/delete) and admin-only API routes (`/api/categories`, `/api/categories/[id]`); delete blocked with 409 when a category is referenced by any equipment
+- [ ] Admin-only Categories page/tab (list, create, edit, delete)
+- [ ] Equipment create/edit/filter forms switched from free-text category input to a select/dropdown sourced from the categories list
+- [ ] Data-migration plan for existing free-text `equipment.category` values (map existing distinct values to new category rows before dropping the old column) — scope this out fully at implementation time, not here
+- [ ] Unit tests: category CRUD validation, in-use delete conflict, equipment category dropdown wiring
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+## Phase 11 — Maintenance Workflow & Technician Access Hardening
+
+Status: Not started.
+
+Implements the explicit status-transition and technician-access rules in `docs/REQUIREMENTS.md` section 7 and `docs/ARCHITECTURE.md` section 5.
+
+- [ ] Enforce the explicit status-transition table (`scheduled → in_progress`, `in_progress → completed`, `scheduled → cancelled`, `in_progress → cancelled`; all others rejected) in the maintenance service layer
+- [ ] Confirm/add an equipment detail view accessible to technicians (read-only) showing equipment info and its maintenance history
+- [ ] Confirm technicians can see maintenance records assigned to them distinctly from general equipment maintenance history
+- [ ] Unit tests: valid/invalid transition matrix, technician-scoped update authorization edge cases
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+## Phase 12 — Dashboard Verification
+
+Status: Not started.
+
+Confirms `docs/REQUIREMENTS.md` section 8 ("By Type" and "Recent Activity") still holds after Phases 8–11 change the underlying data.
+
+- [ ] Confirm "By Type" continues to report real counts for Preventive/Corrective/Inspection (including the all-zero case) after the transition-validation changes in Phase 11
+- [ ] Confirm "Recent Activity" entries remain accurate and that the "No maintenance activity yet." empty state still renders correctly
+- [ ] Adjust dashboard service/UI only if a gap is found; add unit tests if logic changes
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+## Phase 13 — Final Verification
+
+Status: Not started.
+
+- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass across the full set of changes from Phases 8–12
+- [ ] Manual regression pass against a seeded local database
+- [ ] Re-check against `CLAUDE.md`'s Definition of Done (no secrets exposed, no unnecessary dependencies/complexity, architecture unchanged)
+
 ---
 
 ## Notes
 
 * Architecture and scope are fixed by `CLAUDE.md` and `docs/ARCHITECTURE.md`; do not introduce new patterns or dependencies without checking there first.
 * If a phase reveals an unrelated problem, fix it only if it blocks the current phase; otherwise note it here under a "Known issues" section rather than expanding scope silently.
+* 2026-09-14: Documentation updated (this file, `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`) to tighten the access model (no role-change functionality, ever), add category master data, password management, explicit maintenance status transitions, and clarify dashboard/technician-access rules, and to add Phases 8–13 covering the not-yet-implemented work. Phases 1–7 above are left unchanged as an accurate historical record — Phase 7's role-change feature was genuinely built and is now scheduled for removal in Phase 8, not retroactively erased from this history.

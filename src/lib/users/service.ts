@@ -183,20 +183,3 @@ export async function deactivateUser(
     .returning(userColumns);
   return record;
 }
-
-export async function changeUserRole(
-  user: UserSummary,
-  role: Role,
-  actingUserId: string,
-): Promise<UserSummary> {
-  if (user.id === actingUserId) {
-    throw new SelfActionError("Cannot change your own role");
-  }
-
-  const [record] = await db
-    .update(users)
-    .set({ role, updatedAt: new Date() })
-    .where(eq(users.id, user.id))
-    .returning(userColumns);
-  return record;
-}
