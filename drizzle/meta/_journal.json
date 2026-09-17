@@ -15,6 +15,13 @@
       "when": 1789257761556,
       "tag": "0001_uneven_blink",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789430400000,
+      "tag": "0002_category_master_data",
+      "breakpoints": true
     }
   ]
 }

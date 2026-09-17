@@ -4,6 +4,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/form-controls";
 import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
 import { EquipmentStatusBadge } from "@/components/equipment/status-badge";
+import { listCategories } from "@/lib/categories/service";
 import { equipmentStatusValues } from "@/lib/equipment/schema";
 import { listEquipment } from "@/lib/equipment/service";
 
@@ -24,10 +25,14 @@ export default async function EquipmentPage({
 
   const search = typeof params.search === "string" ? params.search : undefined;
   const statusParam = typeof params.status === "string" ? params.status : undefined;
-  const category = typeof params.category === "string" ? params.category : undefined;
+  const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
   const status = isEquipmentStatus(statusParam) ? statusParam : undefined;
 
-  const equipmentList = await listEquipment({ search, status, category });
+  const [equipmentList, categories] = await Promise.all([
+    listEquipment({ search, status, categoryId }),
+    listCategories(),
+  ]);
+  const categoryNameById = new Map(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-8">
@@ -70,20 +75,21 @@ export default async function EquipmentPage({
         </div>
 
         <div className="flex flex-col gap-1">
-          <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            name="category"
-            type="text"
-            defaultValue={category ?? ""}
-            placeholder="Category"
-          />
+          <Label htmlFor="categoryId">Category</Label>
+          <Select id="categoryId" name="categoryId" defaultValue={categoryId ?? ""}>
+            <option value="">All categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </Select>
         </div>
 
         <button type="submit" className={buttonClasses("secondary")}>
           Apply filters
         </button>
-        {search || status || category ? (
+        {search || status || categoryId ? (
           <Link href="/equipment" className={buttonClasses("secondary")}>
             Clear
           </Link>
@@ -117,7 +123,7 @@ export default async function EquipmentPage({
                   </td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.code}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {item.category ?? "—"}
+                    {item.categoryId ? (categoryNameById.get(item.categoryId) ?? "—") : "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {item.location ?? "—"}

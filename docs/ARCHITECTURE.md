@@ -62,7 +62,7 @@ Defined in `src/db/schema.ts`, PostgreSQL via Drizzle.
 
 Self-registered accounts are created with `registration_status: pending` and `is_active: false`. Accounts created via seed data or directly by an admin default to `approved`/active, so the column's default keeps existing rows unaffected.
 
-**`categories`** — **planned, not yet implemented.** Separate master-data table backing equipment categorization (REQUIREMENTS.md section 5). Minimal shape:
+**`categories`** — separate master-data table backing equipment categorization (REQUIREMENTS.md section 5):
 | column | type | notes |
 |---|---|---|
 | id | uuid, PK | `defaultRandom()` |
@@ -75,7 +75,7 @@ Self-registered accounts are created with `registration_status: pending` and `is
 | id | uuid, PK | |
 | name | varchar(200) | |
 | code | varchar(50) | unique |
-| category_id | uuid, FK → categories.id | nullable — **planned change**: currently a free-text `category varchar(100)` column; will become this nullable foreign key once the `categories` table lands, so existing behavior (category is optional) is preserved |
+| category_id | uuid, FK → categories.id | nullable |
 | location | varchar(200) | nullable |
 | status | equipment_status | default `operational`, indexed |
 | purchase_date | date | nullable |
@@ -98,9 +98,9 @@ Self-registered accounts are created with `registration_status: pending` and `is
 | created_by_id | uuid, FK → users.id | nullable |
 | created_at / updated_at | timestamptz | default now |
 
-Relationships: one equipment → many maintenance records (cascade delete). A maintenance record optionally references an assigned technician and the creating user, both from `users`. Once implemented, one category → many equipment (nullable reference; deleting a category in use must be blocked at the service layer, not relied on as a DB constraint, so a clear 409 can be returned — see section 5).
+Relationships: one equipment → many maintenance records (cascade delete). A maintenance record optionally references an assigned technician and the creating user, both from `users`. One category → many equipment (nullable reference; deleting a category in use is blocked at the service layer, not relied on as a DB constraint, so a clear 409 can be returned — see section 5).
 
-Schema changes must follow CLAUDE.md section 8: inspect schema → check affected queries/relations → update schema/migration → update app code → verify with tests. The `categories` table and `equipment.category_id` change described above are documented ahead of implementation and require a migration when built (see `docs/PLAN.md`).
+Schema changes must follow CLAUDE.md section 8: inspect schema → check affected queries/relations → update schema/migration → update app code → verify with tests. Migration `0002_category_master_data.sql` introduces `categories`, backfills one row per distinct existing free-text `equipment.category` value, populates the new `equipment.category_id` from that mapping, then drops the old `category` column — preserving existing equipment/category associations rather than discarding them.
 
 ## 4. Authentication & Authorization
 
@@ -163,7 +163,7 @@ A concise summary of who can do what, consolidating the rules above and in `docs
 * Errors follow a consistent shape (e.g. `{ error: string }`) and never leak stack traces, credentials, or internal details (CLAUDE.md section 13).
 * There is no `PATCH /api/users/[id]/role` route (or equivalent) — role-change is not a supported action (see section 4).
 * **Planned, not yet implemented** — password management: `PATCH /api/users/me/password` (self-service change: current password, new password, confirmation, authenticated user only) and `POST /api/users/[id]/reset-password` (admin-only temporary reset for another user).
-* **Planned, not yet implemented** — category management: `GET/POST /api/categories` (list is open to both roles for populating dropdowns; create is admin-only) and `PATCH/DELETE /api/categories/[id]` (admin-only); a delete on a category still referenced by equipment returns 409, using the same custom-error-mapped-to-status pattern as `EquipmentCodeConflictError`/`InvalidRegistrationStateError`.
+* Category management: `GET/POST /api/categories` (list is open to both roles for populating dropdowns; create is admin-only) and `PATCH/DELETE /api/categories/[id]` (admin-only); a delete on a category still referenced by equipment returns 409 (`CategoryInUseError`), using the same custom-error-mapped-to-status pattern as `EquipmentCodeConflictError`/`InvalidRegistrationStateError`. Business logic lives in `src/lib/categories/service.ts` (`listCategories`, `getCategoryById`, `createCategory`, `updateCategory`, `deleteCategory`); validation in `src/lib/categories/schema.ts`.
 * User-management business logic lives in `src/lib/users/service.ts` (already home to `listActiveTechnicians`), extended with `listUsers` (filter by `registrationStatus`/`role`/`isActive`), `registerUser`, `approveUser`, `rejectUser`, `activateUser`, `deactivateUser`. Conflict/guard conditions are custom `Error` subclasses caught in the route handler and mapped to HTTP status, matching `EquipmentCodeConflictError`'s pattern: a duplicate registration email and an approve/reject call on a non-`pending` user both map to 409; an admin acting on their own account for deactivate maps to 403. Validation schemas live in a new `src/lib/users/schema.ts`, alongside the existing `src/lib/auth/schema.ts` (`loginSchema`).
 
 ## 8. Docker

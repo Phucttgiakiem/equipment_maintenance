@@ -12,25 +12,33 @@ export type EquipmentFormValues = {
   id: string;
   name: string;
   code: string;
-  category: string | null;
+  categoryId: string | null;
   location: string | null;
   status: EquipmentStatus;
   purchaseDate: Date | null;
   notes: string | null;
 };
 
+type Category = { id: string; name: string };
+
 function toDateInputValue(date: Date | null) {
   if (!date) return "";
   return date.toISOString().slice(0, 10);
 }
 
-export function EquipmentForm({ equipment }: { equipment?: EquipmentFormValues }) {
+export function EquipmentForm({
+  equipment,
+  categories,
+}: {
+  equipment?: EquipmentFormValues;
+  categories: Category[];
+}) {
   const router = useRouter();
   const isEditing = !!equipment;
 
   const [name, setName] = useState(equipment?.name ?? "");
   const [code, setCode] = useState(equipment?.code ?? "");
-  const [category, setCategory] = useState(equipment?.category ?? "");
+  const [categoryId, setCategoryId] = useState(equipment?.categoryId ?? "");
   const [location, setLocation] = useState(equipment?.location ?? "");
   const [status, setStatus] = useState<EquipmentStatus>(equipment?.status ?? "operational");
   const [purchaseDate, setPurchaseDate] = useState(
@@ -51,7 +59,7 @@ export function EquipmentForm({ equipment }: { equipment?: EquipmentFormValues }
     const payload = {
       name,
       code,
-      category: category || null,
+      categoryId: categoryId || null,
       location: location || null,
       status,
       purchaseDate: purchaseDate || null,
@@ -101,12 +109,19 @@ export function EquipmentForm({ equipment }: { equipment?: EquipmentFormValues }
       </FormField>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Category" htmlFor="category" error={fieldErrors.category?.[0]}>
-          <Input
-            id="category"
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
-          />
+        <FormField label="Category" htmlFor="categoryId" error={fieldErrors.categoryId?.[0]}>
+          <Select
+            id="categoryId"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+          >
+            <option value="">No category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </Select>
         </FormField>
 
         <FormField label="Location" htmlFor="location" error={fieldErrors.location?.[0]}>

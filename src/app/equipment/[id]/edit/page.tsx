@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { EquipmentForm } from "@/components/equipment/equipment-form";
+import { listCategories } from "@/lib/categories/service";
 import { getEquipmentById } from "@/lib/equipment/service";
 
 export default async function EditEquipmentPage({
@@ -14,7 +15,10 @@ export default async function EditEquipmentPage({
   }
 
   const { id } = await params;
-  const equipment = await getEquipmentById(id);
+  const [equipment, categories] = await Promise.all([
+    getEquipmentById(id),
+    listCategories(),
+  ]);
   if (!equipment) {
     notFound();
   }
@@ -24,7 +28,7 @@ export default async function EditEquipmentPage({
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         Edit equipment
       </h1>
-      <EquipmentForm equipment={equipment} />
+      <EquipmentForm equipment={equipment} categories={categories} />
     </div>
   );
 }
