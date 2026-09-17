@@ -37,6 +37,13 @@ export const maintenanceTypeEnum = pgEnum("maintenance_type", [
   "inspection",
 ]);
 
+export const categories = pgTable("categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name", { length: 120 }).notNull(),
@@ -57,7 +64,7 @@ export const equipment = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     name: varchar("name", { length: 200 }).notNull(),
     code: varchar("code", { length: 50 }).notNull().unique(),
-    category: varchar("category", { length: 100 }),
+    categoryId: uuid("category_id").references(() => categories.id),
     location: varchar("location", { length: 200 }),
     status: equipmentStatusEnum("status").notNull().default("operational"),
     purchaseDate: timestamp("purchase_date", { mode: "date" }),

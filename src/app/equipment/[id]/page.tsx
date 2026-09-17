@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { buttonClasses } from "@/components/ui/button";
 import { EquipmentStatusBadge } from "@/components/equipment/status-badge";
 import { MaintenanceStatusBadge } from "@/components/maintenance/status-badge";
+import { getCategoryById } from "@/lib/categories/service";
 import { getEquipmentById } from "@/lib/equipment/service";
 import { listMaintenanceRecords } from "@/lib/maintenance/service";
 import { listActiveTechnicians } from "@/lib/users/service";
@@ -22,9 +23,10 @@ export default async function EquipmentDetailPage({
     notFound();
   }
 
-  const [maintenanceList, technicians] = await Promise.all([
+  const [maintenanceList, technicians, category] = await Promise.all([
     listMaintenanceRecords({ equipmentId: id }),
     listActiveTechnicians(),
+    equipment.categoryId ? getCategoryById(equipment.categoryId) : null,
   ]);
   const technicianNameById = new Map(technicians.map((t) => [t.id, t.name]));
 
@@ -37,7 +39,7 @@ export default async function EquipmentDetailPage({
           </h1>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Code: {equipment.code}
-            {equipment.category ? ` · ${equipment.category}` : ""}
+            {category ? ` · ${category.name}` : ""}
             {equipment.location ? ` · ${equipment.location}` : ""}
           </p>
         </div>

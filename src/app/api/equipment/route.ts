@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const parsed = equipmentListQuerySchema.safeParse({
     search: searchParams.get("search") ?? undefined,
     status: searchParams.get("status") ?? undefined,
-    category: searchParams.get("category") ?? undefined,
+    categoryId: searchParams.get("categoryId") ?? undefined,
   });
 
   if (!parsed.success) {

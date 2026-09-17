@@ -35,8 +35,8 @@ export async function listEquipment(filters: EquipmentListQuery) {
   if (filters.status) {
     conditions.push(eq(equipment.status, filters.status));
   }
-  if (filters.category) {
-    conditions.push(eq(equipment.category, filters.category));
+  if (filters.categoryId) {
+    conditions.push(eq(equipment.categoryId, filters.categoryId));
   }
 
   return db
