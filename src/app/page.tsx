@@ -105,7 +105,8 @@ export default async function DashboardPage() {
                     {item.equipmentName}
                   </Link>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {formatLabel(item.type)} &middot; updated {item.updatedAt.toLocaleString()}
+                    {formatLabel(item.type)} &middot; {item.technicianName ?? "Unassigned"}{" "}
+                    &middot; updated {item.updatedAt.toLocaleString()}
                   </span>
                 </div>
                 <MaintenanceStatusBadge status={item.status} />

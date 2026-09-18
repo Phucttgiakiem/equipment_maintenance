@@ -6,6 +6,7 @@ import {
   maintenanceRecords,
   maintenanceStatusEnum,
   maintenanceTypeEnum,
+  users,
 } from "@/db/schema";
 
 type EquipmentStatus = (typeof equipmentStatusEnum.enumValues)[number];
@@ -29,6 +30,7 @@ export type RecentActivityItem = {
   equipmentName: string;
   type: MaintenanceType;
   status: MaintenanceStatus;
+  technicianName: string | null;
   updatedAt: Date;
 };
 
@@ -90,10 +92,12 @@ export async function getRecentActivity(
       equipmentName: equipment.name,
       type: maintenanceRecords.type,
       status: maintenanceRecords.status,
+      technicianName: users.name,
       updatedAt: maintenanceRecords.updatedAt,
     })
     .from(maintenanceRecords)
     .innerJoin(equipment, eq(maintenanceRecords.equipmentId, equipment.id))
+    .leftJoin(users, eq(maintenanceRecords.technicianId, users.id))
     .orderBy(desc(maintenanceRecords.updatedAt))
     .limit(limit);
 }
