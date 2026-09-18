@@ -62,6 +62,7 @@ export const maintenanceListQuerySchema = z.object({
   technicianId: z.string().uuid().optional(),
 });
 
+export type MaintenanceStatus = (typeof maintenanceStatusValues)[number];
 export type CreateMaintenanceInput = z.infer<typeof createMaintenanceSchema>;
 export type UpdateMaintenanceInput = z.infer<typeof updateMaintenanceSchema>;
 export type TechnicianSelfUpdateInput = z.infer<typeof technicianSelfUpdateSchema>;

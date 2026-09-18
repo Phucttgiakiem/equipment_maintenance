@@ -185,15 +185,22 @@ Notes:
 
 ## Phase 11 — Maintenance Workflow & Technician Access Hardening
 
-Status: Not started.
-
 Implements the explicit status-transition and technician-access rules in `docs/REQUIREMENTS.md` section 7 and `docs/ARCHITECTURE.md` section 5.
 
-- [ ] Enforce the explicit status-transition table (`scheduled → in_progress`, `in_progress → completed`, `scheduled → cancelled`, `in_progress → cancelled`; all others rejected) in the maintenance service layer
-- [ ] Confirm/add an equipment detail view accessible to technicians (read-only) showing equipment info and its maintenance history
-- [ ] Confirm technicians can see maintenance records assigned to them distinctly from general equipment maintenance history
-- [ ] Unit tests: valid/invalid transition matrix, technician-scoped update authorization edge cases
-- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+- [x] Enforce the explicit status-transition table (`scheduled → in_progress`, `in_progress → completed`, `scheduled → cancelled`, `in_progress → cancelled`; all others rejected) in the maintenance service layer
+- [x] Confirm/add an equipment detail view accessible to technicians (read-only) showing equipment info and its maintenance history
+- [x] Confirm technicians can see maintenance records assigned to them distinctly from general equipment maintenance history
+- [x] Unit tests: valid/invalid transition matrix, technician-scoped update authorization edge cases
+- [x] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+Phase 11 is complete: `npm run typecheck`, `npm run lint`, `npm test` (137 tests, 14 suites), and `npm run build` all pass.
+
+Notes:
+* `src/lib/maintenance/service.ts` adds `MAINTENANCE_STATUS_TRANSITIONS`, `isValidMaintenanceTransition`, and `InvalidMaintenanceTransitionError` (409, same pattern as `InvalidRegistrationStateError`/`CategoryInUseError`). `updateMaintenanceRecord` takes an optional `currentStatus` parameter and rejects the write before touching the database if the requested `status` isn't a listed transition from it; a status left unchanged is treated as a no-op, not a transition, so other fields (e.g. notes) can still be updated without re-confirming the current status. The check applies to both admins and technicians — REQUIREMENTS.md section 7's transition table is a data-integrity rule on the record itself, not a role-specific restriction (role/assignment authorization is the separate, pre-existing `authorizeMaintenanceUpdate` check).
+* `PATCH /api/maintenance/[id]` (`src/app/api/maintenance/[id]/route.ts`) now passes the already-fetched `existing.status` into `updateMaintenanceRecord` and maps `InvalidMaintenanceTransitionError` to a 409, consistent with REQUIREMENTS.md section 9's status-code rules.
+* Equipment detail view (`/equipment/[id]`): already read-accessible to technicians with the full maintenance history table (no role gating on read; only the "Edit equipment" and "New maintenance" actions are admin-only) — confirmed as-is, no changes needed.
+* "Technicians can see maintenance records assigned to them distinctly from general equipment maintenance history": confirmed as-is per `docs/ARCHITECTURE.md` section 5, which is explicit that this is an authorization check on write, not a filter on read — a technician reads the same full per-equipment history as an admin, and `/maintenance/[id]` already shows them the editable form (`mode="edit-self"`) only for records assigned to them, distinguishing "mine" from "everyone's" through actionability rather than a separate list/page. This also preserves Phase 4's decision not to add a top-level maintenance list page.
+* New tests in `src/lib/maintenance/service.test.ts`: the full valid/invalid transition matrix (both through `updateMaintenanceRecord` and directly against `isValidMaintenanceTransition`), a same-status no-op case, and a case confirming no transition is enforced when `currentStatus` is omitted. Technician-scoped update authorization edge cases (admin/self/unassigned/no-technician) were already fully covered by the existing `src/lib/maintenance/authorize.test.ts` and needed no changes.
 
 ## Phase 12 — Dashboard Verification
 
