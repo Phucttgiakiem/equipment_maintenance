@@ -27,10 +27,12 @@ const mockDb = {
 jest.mock("@/db", () => ({ db: mockDb }));
 
 import {
+  InvalidMaintenanceTransitionError,
   MaintenanceReferenceError,
   createMaintenanceRecord,
   deleteMaintenanceRecord,
   getMaintenanceById,
+  isValidMaintenanceTransition,
   updateMaintenanceRecord,
 } from "./service";
 
@@ -133,6 +135,89 @@ describe("updateMaintenanceRecord", () => {
 
     // Assert
     await expect(act).rejects.toBeInstanceOf(MaintenanceReferenceError);
+  });
+
+  it.each([
+    ["scheduled", "in_progress"],
+    ["in_progress", "completed"],
+    ["scheduled", "cancelled"],
+    ["in_progress", "cancelled"],
+  ] as const)("allows the %s -> %s transition", async (from, to) => {
+    // Arrange
+    const updated = { id: "maint-1", status: to };
+    mockDb.update.mockReturnValue(createChainable([updated]));
+
+    // Act
+    const result = await updateMaintenanceRecord("maint-1", { status: to }, from);
+
+    // Assert
+    expect(result).toEqual(updated);
+  });
+
+  it.each([
+    ["scheduled", "completed"],
+    ["in_progress", "scheduled"],
+    ["completed", "in_progress"],
+    ["completed", "cancelled"],
+    ["cancelled", "scheduled"],
+    ["cancelled", "in_progress"],
+  ] as const)("rejects the %s -> %s transition", async (from, to) => {
+    // Arrange
+    // Act
+    const act = updateMaintenanceRecord("maint-1", { status: to }, from);
+
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(InvalidMaintenanceTransitionError);
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+
+  it("allows a no-op status update (same status) without treating it as a transition", async () => {
+    // Arrange
+    const updated = { id: "maint-1", status: "scheduled", notes: "checked in" };
+    mockDb.update.mockReturnValue(createChainable([updated]));
+
+    // Act
+    const result = await updateMaintenanceRecord(
+      "maint-1",
+      { status: "scheduled", notes: "checked in" },
+      "scheduled",
+    );
+
+    // Assert
+    expect(result).toEqual(updated);
+  });
+
+  it("does not validate a transition when no current status is provided", async () => {
+    // Arrange
+    const updated = { id: "maint-1", notes: "updated" };
+    mockDb.update.mockReturnValue(createChainable([updated]));
+
+    // Act
+    const result = await updateMaintenanceRecord("maint-1", { notes: "updated" });
+
+    // Assert
+    expect(result).toEqual(updated);
+  });
+});
+
+describe("isValidMaintenanceTransition", () => {
+  it.each([
+    ["scheduled", "in_progress", true],
+    ["in_progress", "completed", true],
+    ["scheduled", "cancelled", true],
+    ["in_progress", "cancelled", true],
+    ["scheduled", "completed", false],
+    ["in_progress", "scheduled", false],
+    ["completed", "scheduled", false],
+    ["completed", "in_progress", false],
+    ["cancelled", "scheduled", false],
+    ["cancelled", "in_progress", false],
+  ] as const)("%s -> %s is valid: %s", (from, to, expected) => {
+    // Act
+    const result = isValidMaintenanceTransition(from, to);
+
+    // Assert
+    expect(result).toBe(expected);
   });
 });
 

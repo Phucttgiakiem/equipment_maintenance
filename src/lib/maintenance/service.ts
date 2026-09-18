@@ -4,6 +4,7 @@ import { maintenanceRecords } from "@/db/schema";
 import type {
   CreateMaintenanceInput,
   MaintenanceListQuery,
+  MaintenanceStatus,
   TechnicianSelfUpdateInput,
   UpdateMaintenanceInput,
 } from "./schema";
@@ -15,6 +16,32 @@ export class MaintenanceReferenceError extends Error {
     super("Referenced equipment or technician does not exist");
     this.name = "MaintenanceReferenceError";
   }
+}
+
+/**
+ * Allowed maintenance status transitions per REQUIREMENTS.md section 7.
+ * Any transition not listed here (including moving out of a terminal
+ * status, or skipping a step) is invalid.
+ */
+const MAINTENANCE_STATUS_TRANSITIONS: Record<MaintenanceStatus, readonly MaintenanceStatus[]> = {
+  scheduled: ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
+export class InvalidMaintenanceTransitionError extends Error {
+  constructor(from: MaintenanceStatus, to: MaintenanceStatus) {
+    super(`Cannot change maintenance status from "${from}" to "${to}"`);
+    this.name = "InvalidMaintenanceTransitionError";
+  }
+}
+
+export function isValidMaintenanceTransition(
+  from: MaintenanceStatus,
+  to: MaintenanceStatus,
+): boolean {
+  return MAINTENANCE_STATUS_TRANSITIONS[from].includes(to);
 }
 
 function isForeignKeyViolation(error: unknown): boolean {
@@ -76,7 +103,17 @@ export async function createMaintenanceRecord(
 export async function updateMaintenanceRecord(
   id: string,
   input: UpdateMaintenanceInput | TechnicianSelfUpdateInput,
+  currentStatus?: MaintenanceStatus,
 ) {
+  if (
+    input.status !== undefined &&
+    currentStatus !== undefined &&
+    input.status !== currentStatus &&
+    !isValidMaintenanceTransition(currentStatus, input.status)
+  ) {
+    throw new InvalidMaintenanceTransitionError(currentStatus, input.status);
+  }
+
   try {
     const [record] = await db
       .update(maintenanceRecords)

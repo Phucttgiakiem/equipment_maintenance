@@ -6,6 +6,7 @@ import {
   updateMaintenanceSchema,
 } from "@/lib/maintenance/schema";
 import {
+  InvalidMaintenanceTransitionError,
   MaintenanceReferenceError,
   deleteMaintenanceRecord,
   getMaintenanceById,
@@ -55,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const record = await updateMaintenanceRecord(id, parsed.data);
+    const record = await updateMaintenanceRecord(id, parsed.data, existing.status);
     if (!record) {
       return NextResponse.json({ error: "Maintenance record not found" }, { status: 404 });
     }
@@ -63,6 +64,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     if (error instanceof MaintenanceReferenceError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof InvalidMaintenanceTransitionError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     throw error;
   }
