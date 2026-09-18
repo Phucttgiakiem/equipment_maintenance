@@ -8,7 +8,7 @@ function createChainable(result: unknown): Chainable {
       Promise.resolve(result).then(resolve, reject),
   } as Chainable;
 
-  for (const method of ["from", "where", "groupBy", "orderBy", "limit", "innerJoin"]) {
+  for (const method of ["from", "where", "groupBy", "orderBy", "limit", "innerJoin", "leftJoin"]) {
     chain[method] = jest.fn(() => chain);
   }
 
@@ -94,7 +94,17 @@ describe("getRecentActivity", () => {
         equipmentName: "Air Compressor",
         type: "preventive",
         status: "scheduled",
+        technicianName: "Jane Tech",
         updatedAt: new Date("2024-06-02"),
+      },
+      {
+        id: "maint-2",
+        equipmentId: "equip-2",
+        equipmentName: "Forklift",
+        type: "corrective",
+        status: "scheduled",
+        technicianName: null,
+        updatedAt: new Date("2024-06-01"),
       },
     ];
     mockDb.select.mockReturnValue(createChainable(rows));

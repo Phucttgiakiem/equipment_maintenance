@@ -204,14 +204,19 @@ Notes:
 
 ## Phase 12 — Dashboard Verification
 
-Status: Not started.
-
 Confirms `docs/REQUIREMENTS.md` section 8 ("By Type" and "Recent Activity") still holds after Phases 8–11 change the underlying data.
 
-- [ ] Confirm "By Type" continues to report real counts for Preventive/Corrective/Inspection (including the all-zero case) after the transition-validation changes in Phase 11
-- [ ] Confirm "Recent Activity" entries remain accurate and that the "No maintenance activity yet." empty state still renders correctly
-- [ ] Adjust dashboard service/UI only if a gap is found; add unit tests if logic changes
-- [ ] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+- [x] Confirm "By Type" continues to report real counts for Preventive/Corrective/Inspection (including the all-zero case) after the transition-validation changes in Phase 11
+- [x] Confirm "Recent Activity" entries remain accurate and that the "No maintenance activity yet." empty state still renders correctly
+- [x] Adjust dashboard service/UI only if a gap is found; add unit tests if logic changes
+- [x] `npm run typecheck`, `npm run lint`, `npm test`, `npm run build` all pass
+
+Phase 12 is complete: `npm run typecheck`, `npm run lint`, `npm test` (137 tests, 14 suites), and `npm run build` all pass.
+
+Notes:
+* "By Type": verified as-is, no gap. `getMaintenanceStatistics` (`src/lib/dashboard/service.ts`) zero-fills all three `maintenanceTypeEnum` values before applying real grouped counts, so it already satisfies REQUIREMENTS.md section 8's "counts are never hard-coded" rule, including the all-zero case; Phase 11's transition-validation changes only affect `status` writes, not `type`, and don't touch this read path.
+* "Recent Activity": found a real gap against REQUIREMENTS.md section 8, which requires each entry to include "the responsible user (where applicable)" — `RecentActivityItem` and the dashboard UI previously showed only equipment, type, status, and timestamp, with no technician. Fixed: `getRecentActivity` now `leftJoin`s `users` on `maintenanceRecords.technicianId` (left join, not inner, since `technicianId` is nullable) and returns a new `technicianName: string | null` field; the dashboard page (`src/app/page.tsx`) renders it as the technician's name or "Unassigned". The empty-state message ("No maintenance activity yet.") was already correct and unchanged.
+* Updated `src/lib/dashboard/service.test.ts`: added `leftJoin` to the chainable query mock (missing it caused a `TypeError` once the service called it), and extended the `getRecentActivity` test with a second row covering the `technicianName: null` (unassigned) case alongside the assigned case.
 
 ## Phase 13 — Final Verification
 
