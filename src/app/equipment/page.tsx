@@ -108,8 +108,6 @@ export default async function EquipmentPage({
                 <th scope="col" className="px-4 py-3 font-medium">Name</th>
                 <th scope="col" className="px-4 py-3 font-medium">Code</th>
                 <th scope="col" className="px-4 py-3 font-medium">Category</th>
-                <th scope="col" className="px-4 py-3 font-medium">Location</th>
-                <th scope="col" className="px-4 py-3 font-medium">Purchase Date</th>
                 <th scope="col" className="px-4 py-3 font-medium">Status</th>
                 <th scope="col" className="px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -125,12 +123,6 @@ export default async function EquipmentPage({
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.code}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {item.categoryId ? (categoryNameById.get(item.categoryId) ?? "—") : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {item.location ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {item.purchaseDate ? item.purchaseDate.toLocaleDateString() : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <EquipmentStatusBadge status={item.status} />
