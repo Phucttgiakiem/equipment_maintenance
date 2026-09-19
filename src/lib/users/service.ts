@@ -99,10 +99,41 @@ export async function getUserById(id: string): Promise<UserSummary | null> {
   return record ?? null;
 }
 
+/**
+ * A prior `rejected` registration is reused instead of blocked so a
+ * rejected applicant can re-apply with the same email: the existing row is
+ * reset to `pending`/inactive rather than inserting a duplicate. Any other
+ * existing status (`pending` or `approved`) still blocks re-registration.
+ */
 export async function registerUser(input: RegisterInput): Promise<UserSummary> {
   const passwordHash = await bcrypt.hash(input.password, 10);
 
+  const [existing] = await db
+    .select({ id: users.id, registrationStatus: users.registrationStatus })
+    .from(users)
+    .where(eq(users.email, input.email))
+    .limit(1);
+
+  if (existing && existing.registrationStatus !== "rejected") {
+    throw new EmailConflictError();
+  }
+
   try {
+    if (existing) {
+      const [record] = await db
+        .update(users)
+        .set({
+          name: input.name,
+          passwordHash,
+          registrationStatus: "pending",
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existing.id))
+        .returning(userColumns);
+      return record;
+    }
+
     const [record] = await db
       .insert(users)
       .values({

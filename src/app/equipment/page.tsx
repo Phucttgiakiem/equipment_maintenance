@@ -109,8 +109,9 @@ export default async function EquipmentPage({
                 <th scope="col" className="px-4 py-3 font-medium">Code</th>
                 <th scope="col" className="px-4 py-3 font-medium">Category</th>
                 <th scope="col" className="px-4 py-3 font-medium">Location</th>
+                <th scope="col" className="px-4 py-3 font-medium">Purchase Date</th>
                 <th scope="col" className="px-4 py-3 font-medium">Status</th>
-                {isAdmin ? <th scope="col" className="px-4 py-3 font-medium">Actions</th> : null}
+                <th scope="col" className="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -128,25 +129,36 @@ export default async function EquipmentPage({
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {item.location ?? "—"}
                   </td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                    {item.purchaseDate ? item.purchaseDate.toLocaleDateString() : "—"}
+                  </td>
                   <td className="px-4 py-3">
                     <EquipmentStatusBadge status={item.status} />
                   </td>
-                  {isAdmin ? (
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <Link
-                          href={`/equipment/${item.id}/edit`}
-                          className="text-sm font-medium text-zinc-700 hover:underline dark:text-zinc-300"
-                        >
-                          Edit
-                        </Link>
-                        <ConfirmDeleteButton
-                          endpoint={`/api/equipment/${item.id}`}
-                          confirmMessage={`Delete equipment "${item.name}"? This cannot be undone.`}
-                        />
-                      </div>
-                    </td>
-                  ) : null}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/equipment/${item.id}#maintenance-history`}
+                        className="text-sm font-medium text-zinc-700 hover:underline dark:text-zinc-300"
+                      >
+                        Maintenance
+                      </Link>
+                      {isAdmin ? (
+                        <>
+                          <Link
+                            href={`/equipment/${item.id}/edit`}
+                            className="text-sm font-medium text-zinc-700 hover:underline dark:text-zinc-300"
+                          >
+                            Edit
+                          </Link>
+                          <ConfirmDeleteButton
+                            endpoint={`/api/equipment/${item.id}`}
+                            confirmMessage={`Delete equipment "${item.name}"? This cannot be undone.`}
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

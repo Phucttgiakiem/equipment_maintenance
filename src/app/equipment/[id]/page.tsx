@@ -59,7 +59,7 @@ export default async function EquipmentDetailPage({
         </p>
       ) : null}
 
-      <div className="flex items-center justify-between">
+      <div id="maintenance-history" className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
           Maintenance records
         </h2>
