@@ -41,6 +41,9 @@ export default async function EquipmentDetailPage({
             Code: {equipment.code}
             {category ? ` · ${category.name}` : ""}
             {equipment.location ? ` · ${equipment.location}` : ""}
+            {equipment.purchaseDate
+              ? ` · Purchased ${equipment.purchaseDate.toLocaleDateString()}`
+              : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">
