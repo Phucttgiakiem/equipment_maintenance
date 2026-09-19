@@ -68,6 +68,7 @@ describe("registerUser", () => {
   it("creates a pending, inactive technician account", async () => {
     // Arrange
     const created = makeUser();
+    mockDb.select.mockReturnValue(createChainable([]));
     mockDb.insert.mockReturnValue(createChainable([created]));
 
     // Act
@@ -80,11 +81,14 @@ describe("registerUser", () => {
 
     // Assert
     expect(result).toEqual(created);
+    expect(mockDb.update).not.toHaveBeenCalled();
   });
 
-  it("throws EmailConflictError when the email already exists", async () => {
+  it("throws EmailConflictError when a pending registration already exists", async () => {
     // Arrange
-    mockDb.insert.mockReturnValue(createChainable({ code: "23505" }, true));
+    mockDb.select.mockReturnValue(
+      createChainable([{ id: "user-1", registrationStatus: "pending" }]),
+    );
 
     // Act
     const act = registerUser({
@@ -96,11 +100,56 @@ describe("registerUser", () => {
 
     // Assert
     await expect(act).rejects.toBeInstanceOf(EmailConflictError);
+    expect(mockDb.insert).not.toHaveBeenCalled();
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+
+  it("throws EmailConflictError when an approved account already exists", async () => {
+    // Arrange
+    mockDb.select.mockReturnValue(
+      createChainable([{ id: "user-1", registrationStatus: "approved" }]),
+    );
+
+    // Act
+    const act = registerUser({
+      name: "Jamie Tech",
+      email: "jamie@example.com",
+      password: "password123",
+      confirmPassword: "password123",
+    });
+
+    // Assert
+    await expect(act).rejects.toBeInstanceOf(EmailConflictError);
+    expect(mockDb.insert).not.toHaveBeenCalled();
+    expect(mockDb.update).not.toHaveBeenCalled();
+  });
+
+  it("reuses a rejected registration and resets it to pending/inactive", async () => {
+    // Arrange
+    const reactivated = makeUser({ registrationStatus: "pending", isActive: false });
+    mockDb.select.mockReturnValue(
+      createChainable([{ id: "user-1", registrationStatus: "rejected" }]),
+    );
+    mockDb.update.mockReturnValue(createChainable([reactivated]));
+
+    // Act
+    const result = await registerUser({
+      name: "Jamie Tech",
+      email: "jamie@example.com",
+      password: "password123",
+      confirmPassword: "password123",
+    });
+
+    // Assert
+    expect(result).toEqual(reactivated);
+    expect(mockDb.insert).not.toHaveBeenCalled();
+    expect(mockDb.update).toHaveBeenCalled();
   });
 
   it("rethrows unrelated database errors", async () => {
     // Arrange
     const dbError = new Error("connection lost");
+    mockDb.select.mockReturnValue(createChainable([]));
     mockDb.insert.mockReturnValue(createChainable(dbError, true));
 
     // Act
