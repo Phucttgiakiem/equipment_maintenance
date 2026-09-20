@@ -1,18 +1,16 @@
 import { type ButtonHTMLAttributes, forwardRef } from "react";
 
-type Variant = "primary" | "secondary" | "danger";
+type Variant = "primary" | "secondary" | "danger" | "ghost";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary:
-    "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200",
-  secondary:
-    "border border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800",
-  danger:
-    "bg-red-600 text-white hover:bg-red-500 dark:bg-red-700 dark:hover:bg-red-600",
+  primary: "bg-accent text-accent-fg border-accent hover:bg-accent-hover",
+  secondary: "bg-surface text-ink border-border hover:bg-surface-2",
+  danger: "bg-danger text-danger-fg border-danger hover:bg-danger-hover",
+  ghost: "bg-transparent text-muted border-transparent hover:text-ink",
 };
 
 export function buttonClasses(variant: Variant = "primary") {
-  return `inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-zinc-950 ${VARIANT_CLASSES[variant]}`;
+  return `inline-flex h-10 items-center justify-center gap-2 rounded-control border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:cursor-not-allowed disabled:opacity-45 ${VARIANT_CLASSES[variant]}`;
 }
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

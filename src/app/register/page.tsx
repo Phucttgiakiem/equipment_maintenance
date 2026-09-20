@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { FormField, Input } from "@/components/ui/form-controls";
 import { PasswordInput } from "@/components/ui/password-input";
 
@@ -41,92 +42,87 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Create an account
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Maintenance Management System
-        </p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-canvas px-4 py-10">
+      <div className="flex items-center gap-2.5">
+        <span aria-hidden="true" className="h-[30px] w-[30px] rounded-control bg-accent" />
+        <span className="text-lg font-semibold text-ink">Maintenance</span>
+      </div>
 
+      <div className="w-full max-w-[400px] rounded-dialog border border-border bg-surface p-7 shadow-card">
         {isSubmitted ? (
-          <div className="mt-6 flex flex-col gap-4">
-            <p className="text-sm text-zinc-700 dark:text-zinc-300">
-              Your registration has been submitted and is awaiting admin approval. You will
-              be able to sign in once an admin approves your account.
-            </p>
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-900 hover:underline dark:text-zinc-50"
-            >
+          <div className="flex flex-col gap-4">
+            <h1 className="text-[22px] font-semibold text-ink">Registration submitted</h1>
+            <Alert tone="info">
+              Your account is waiting for admin approval. You can sign in once it is approved.
+            </Alert>
+            <Link href="/login" className={`${buttonClasses("secondary")} w-full`}>
               Back to sign in
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-            <FormField label="Name" htmlFor="name" error={fieldErrors.name?.[0]}>
-              <Input
-                id="name"
-                autoComplete="name"
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormField>
+          <>
+            <h1 className="text-[22px] font-semibold text-ink">Create account</h1>
 
-            <FormField label="Email" htmlFor="email" error={fieldErrors.email?.[0]}>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </FormField>
+            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+              {formError ? <Alert tone="danger">{formError}</Alert> : null}
 
-            <FormField label="Password" htmlFor="password" error={fieldErrors.password?.[0]}>
-              <PasswordInput
-                id="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </FormField>
+              <FormField label="Name" htmlFor="name" error={fieldErrors.name?.[0]}>
+                <Input
+                  id="name"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </FormField>
 
-            <FormField
-              label="Confirm password"
-              htmlFor="confirmPassword"
-              error={fieldErrors.confirmPassword?.[0]}
-            >
-              <PasswordInput
-                id="confirmPassword"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-              />
-            </FormField>
+              <FormField label="Email" htmlFor="email" error={fieldErrors.email?.[0]}>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </FormField>
 
-            {formError ? (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {formError}
+              <FormField label="Password" htmlFor="password" error={fieldErrors.password?.[0]}>
+                <PasswordInput
+                  id="password"
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </FormField>
+
+              <FormField
+                label="Confirm password"
+                htmlFor="confirmPassword"
+                error={fieldErrors.confirmPassword?.[0]}
+              >
+                <PasswordInput
+                  id="confirmPassword"
+                  autoComplete="new-password"
+                  required
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                />
+              </FormField>
+
+              <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+                {isSubmitting ? "Submitting..." : "Create account"}
+              </Button>
+
+              <p className="text-center text-[13px] text-muted">
+                Already registered?{" "}
+                <Link href="/login" className="font-medium text-accent hover:underline">
+                  Sign in
+                </Link>
               </p>
-            ) : null}
-
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Register"}
-            </Button>
-
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Already have an account?{" "}
-              <Link href="/login" className="font-medium text-zinc-900 hover:underline dark:text-zinc-50">
-                Sign in
-              </Link>
-            </p>
-          </form>
+            </form>
+          </>
         )}
       </div>
     </div>

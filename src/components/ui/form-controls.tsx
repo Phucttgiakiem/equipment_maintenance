@@ -10,20 +10,17 @@ import {
 } from "react";
 
 const FIELD_CLASSES =
-  "rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-1 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 dark:focus:ring-offset-zinc-900";
+  "w-full rounded-control border border-border bg-surface px-3 text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-canvas aria-invalid:border-danger";
 
 export function Label(props: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label
-      {...props}
-      className={`text-sm font-medium text-zinc-700 dark:text-zinc-300 ${props.className ?? ""}`}
-    />
+    <label {...props} className={`text-sm font-medium text-ink ${props.className ?? ""}`} />
   );
 }
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className = "", ...props }, ref) {
-    return <input ref={ref} className={`${FIELD_CLASSES} ${className}`} {...props} />;
+    return <input ref={ref} className={`h-10 ${FIELD_CLASSES} ${className}`} {...props} />;
   },
 );
 
@@ -31,14 +28,14 @@ export const Textarea = forwardRef<
   HTMLTextAreaElement,
   TextareaHTMLAttributes<HTMLTextAreaElement>
 >(function Textarea({ className = "", ...props }, ref) {
-  return <textarea ref={ref} className={`${FIELD_CLASSES} ${className}`} {...props} />;
+  return <textarea ref={ref} className={`py-2 ${FIELD_CLASSES} ${className}`} {...props} />;
 });
 
 export const Select = forwardRef<
   HTMLSelectElement,
   SelectHTMLAttributes<HTMLSelectElement>
 >(function Select({ className = "", ...props }, ref) {
-  return <select ref={ref} className={`${FIELD_CLASSES} ${className}`} {...props} />;
+  return <select ref={ref} className={`h-10 ${FIELD_CLASSES} ${className}`} {...props} />;
 });
 
 export function FormField({
@@ -61,11 +58,11 @@ export function FormField({
     : children;
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <Label htmlFor={htmlFor}>{label}</Label>
       {control}
       {error ? (
-        <p id={errorId} role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p id={errorId} role="alert" className="text-xs text-danger-hover">
           {error}
         </p>
       ) : null}

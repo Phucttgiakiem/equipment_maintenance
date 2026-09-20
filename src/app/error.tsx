@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 
 export default function Error({
   error,
@@ -16,18 +17,15 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Something went wrong
-      </h1>
-      <p className="max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
-        An unexpected error occurred. You can try again, or go back to the dashboard.
-      </p>
-      <div className="flex items-center gap-3">
-        <Button onClick={reset}>Try again</Button>
-        <Link href="/" className={buttonClasses("secondary")}>
-          Dashboard
-        </Link>
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16">
+      <div className="flex w-full max-w-sm flex-col gap-3">
+        <Alert tone="danger">We could not load this page. Reload to try again.</Alert>
+        <div className="flex items-center justify-center gap-2">
+          <Button onClick={reset}>Reload</Button>
+          <Link href="/" className={buttonClasses("secondary")}>
+            Dashboard
+          </Link>
+        </div>
       </div>
     </div>
   );

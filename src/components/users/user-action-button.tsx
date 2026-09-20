@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export function UserActionButton({
   endpoint,
@@ -18,20 +19,18 @@ export function UserActionButton({
   confirmMessage?: string;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleClick() {
-    if (confirmMessage && !window.confirm(confirmMessage)) {
-      return;
-    }
-
+  async function performAction() {
     setIsSubmitting(true);
     setError(null);
 
     const response = await fetch(endpoint, { method: "POST" });
 
     setIsSubmitting(false);
+    setOpen(false);
 
     if (!response.ok) {
       const body = await response.json().catch(() => null);
@@ -42,17 +41,37 @@ export function UserActionButton({
     router.refresh();
   }
 
+  function handleClick() {
+    if (confirmMessage) {
+      setOpen(true);
+      return;
+    }
+    void performAction();
+  }
+
   return (
     <div className="flex flex-col items-start gap-1">
       <button
         type="button"
         onClick={handleClick}
         disabled={isSubmitting}
-        className={`${buttonClasses(variant)} px-3 py-1 text-xs`}
+        className={`${buttonClasses(variant)} h-8 px-3 text-xs`}
       >
         {isSubmitting ? pendingLabel : label}
       </button>
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? <p className="text-xs text-danger-hover">{error}</p> : null}
+      {confirmMessage ? (
+        <ConfirmDialog
+          open={open}
+          title={label}
+          message={confirmMessage}
+          confirmLabel={label}
+          danger={variant === "danger"}
+          isSubmitting={isSubmitting}
+          onConfirm={() => void performAction()}
+          onCancel={() => setOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

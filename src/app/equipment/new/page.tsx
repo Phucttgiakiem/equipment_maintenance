@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { EquipmentForm } from "@/components/equipment/equipment-form";
+import { Card } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { listCategories } from "@/lib/categories/service";
 
 export default async function NewEquipmentPage() {
@@ -12,11 +14,11 @@ export default async function NewEquipmentPage() {
   const categories = await listCategories();
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        New equipment
-      </h1>
-      <EquipmentForm categories={categories} />
-    </div>
+    <PageContainer>
+      <PageHeader title="New equipment" back={{ href: "/equipment", label: "Equipment" }} />
+      <Card className="max-w-[760px] p-6">
+        <EquipmentForm categories={categories} />
+      </Card>
+    </PageContainer>
   );
 }

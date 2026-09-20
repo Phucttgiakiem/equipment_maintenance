@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --color-canvas: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-surface-2: #eeece7;
+  --color-border: #dcd9d0;
+  --color-ink: #1b1a17;
+  --color-muted: #5c584f;
+  --color-accent: #0f5e63;
+  --color-accent-hover: #0a484c;
+  --color-accent-fg: #ffffff;
+  --color-danger: #b3261e;
+  --color-danger-hover: #9b1c12;
+  --color-danger-fg: #ffffff;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --shadow-card: 0 1px 2px rgba(27, 26, 23, 0.06);
+  --shadow-dialog: 0 12px 32px rgba(27, 26, 23, 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-canvas: #111311;
+    --color-surface: #1a1d1b;
+    --color-surface-2: #242826;
+    --color-border: #343a37;
+    --color-ink: #ecebe6;
+    --color-muted: #a5a8a1;
+    --color-accent: #5cbdb9;
+    --color-accent-hover: #7acfcb;
+    --color-accent-fg: #0b1211;
+    --color-danger: #f07167;
+    --color-danger-hover: #ff9f94;
+    --color-danger-fg: #1a0a09;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-dialog: 0 12px 32px rgba(0, 0, 0, 0.55);
   }
 }
 
+@theme inline {
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-border: var(--color-border);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-fg: var(--color-accent-fg);
+  --color-danger: var(--color-danger);
+  --color-danger-hover: var(--color-danger-hover);
+  --color-danger-fg: var(--color-danger-fg);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-dialog: var(--shadow-dialog);
+
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-dialog: 14px;
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+* {
+  border-color: var(--color-border);
 }

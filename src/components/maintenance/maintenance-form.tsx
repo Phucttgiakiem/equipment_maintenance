@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { FormField, Input, Select, Textarea } from "@/components/ui/form-controls";
 import {
   maintenanceStatusValues,
@@ -39,6 +40,8 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
   const router = useRouter();
   const record = props.mode === "create" ? undefined : props.record;
   const canEditAllFields = props.mode === "create" || props.mode === "edit-full";
+  const cancelHref =
+    props.mode === "create" ? `/equipment/${props.equipmentId}` : `/maintenance/${props.record.id}`;
 
   const [technicianId, setTechnicianId] = useState(record?.technicianId ?? "");
   const [type, setType] = useState<MaintenanceType>(record?.type ?? "preventive");
@@ -55,6 +58,8 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const completedDateEditable = status === "completed";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -129,7 +134,7 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
         />
       </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField label="Type" htmlFor="type" error={fieldErrors.type?.[0]}>
           <Select
             id="type"
@@ -160,9 +165,21 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
             ))}
           </Select>
         </FormField>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Status" htmlFor="status" error={fieldErrors.status?.[0]}>
+          <Select
+            id="status"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as MaintenanceStatus)}
+          >
+            {maintenanceStatusValues.map((value) => (
+              <option key={value} value={value}>
+                {value.replace(/_/g, " ")}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+
         <FormField label="Scheduled date" htmlFor="scheduledDate" error={fieldErrors.scheduledDate?.[0]}>
           <Input
             id="scheduledDate"
@@ -174,29 +191,26 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
           />
         </FormField>
 
-        <FormField label="Completed date" htmlFor="completedDate" error={fieldErrors.completedDate?.[0]}>
-          <Input
-            id="completedDate"
-            type="date"
-            value={completedDate}
-            onChange={(event) => setCompletedDate(event.target.value)}
-          />
-        </FormField>
+        <div className="sm:col-span-2">
+          <FormField
+            label="Completed date"
+            htmlFor="completedDate"
+            error={fieldErrors.completedDate?.[0]}
+          >
+            <Input
+              id="completedDate"
+              type="date"
+              value={completedDate}
+              onChange={(event) => setCompletedDate(event.target.value)}
+              disabled={!completedDateEditable}
+              className={completedDateEditable ? "" : "bg-surface-2"}
+            />
+          </FormField>
+          {!completedDateEditable ? (
+            <p className="mt-1 text-xs text-muted">Only editable once status is Completed.</p>
+          ) : null}
+        </div>
       </div>
-
-      <FormField label="Status" htmlFor="status" error={fieldErrors.status?.[0]}>
-        <Select
-          id="status"
-          value={status}
-          onChange={(event) => setStatus(event.target.value as MaintenanceStatus)}
-        >
-          {maintenanceStatusValues.map((value) => (
-            <option key={value} value={value}>
-              {value.replace(/_/g, " ")}
-            </option>
-          ))}
-        </Select>
-      </FormField>
 
       <FormField label="Notes" htmlFor="notes" error={fieldErrors.notes?.[0]}>
         <Textarea
@@ -208,12 +222,12 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
       </FormField>
 
       {formError ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-sm text-danger-hover">
           {formError}
         </p>
       ) : null}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
             ? "Saving..."
@@ -221,6 +235,9 @@ export function MaintenanceForm(props: MaintenanceFormProps) {
               ? "Create maintenance record"
               : "Save changes"}
         </Button>
+        <Link href={cancelHref} className={buttonClasses("secondary")}>
+          Cancel
+        </Link>
       </div>
     </form>
   );

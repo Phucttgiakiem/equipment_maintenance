@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { EquipmentForm } from "@/components/equipment/equipment-form";
+import { Card } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { listCategories } from "@/lib/categories/service";
 import { getEquipmentById } from "@/lib/equipment/service";
 
@@ -24,11 +26,14 @@ export default async function EditEquipmentPage({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Edit equipment
-      </h1>
-      <EquipmentForm equipment={equipment} categories={categories} />
-    </div>
+    <PageContainer>
+      <PageHeader
+        title="Edit equipment"
+        back={{ href: `/equipment/${equipment.id}`, label: equipment.name }}
+      />
+      <Card className="max-w-[760px] p-6">
+        <EquipmentForm equipment={equipment} categories={categories} />
+      </Card>
+    </PageContainer>
   );
 }
