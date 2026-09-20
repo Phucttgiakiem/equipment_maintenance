@@ -1,4 +1,5 @@
 import type { equipmentStatusEnum } from "@/db/schema";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type EquipmentStatus = (typeof equipmentStatusEnum.enumValues)[number];
 
@@ -10,20 +11,12 @@ const STATUS_LABELS: Record<EquipmentStatus, string> = {
 };
 
 const STATUS_CLASSES: Record<EquipmentStatus, string> = {
-  operational:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  under_maintenance:
-    "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  out_of_service: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-  retired: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+  operational: "bg-[#DFF0E3] text-[#17602B] dark:bg-[#1F3A27] dark:text-[#8FD6A0]",
+  under_maintenance: "bg-[#FAEAC6] text-[#7A4A00] dark:bg-[#40320F] dark:text-[#F2C15B]",
+  out_of_service: "bg-[#F9DBD7] text-[#9B1C12] dark:bg-[#452220] dark:text-[#FF9F94]",
+  retired: "bg-[#E7E5DF] text-[#4A463E] dark:bg-[#2C2F2D] dark:text-[#B8BAB3]",
 };
 
 export function EquipmentStatusBadge({ status }: { status: EquipmentStatus }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[status]}`}
-    >
-      {STATUS_LABELS[status]}
-    </span>
-  );
+  return <StatusBadge label={STATUS_LABELS[status]} className={STATUS_CLASSES[status]} />;
 }

@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { buttonClasses } from "@/components/ui/button";
+import { CARD_CLASSES } from "@/components/ui/card";
+import { DataCard } from "@/components/ui/data-card";
 import { Input, Label, Select } from "@/components/ui/form-controls";
 import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
 import { EquipmentStatusBadge } from "@/components/equipment/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PlusIcon } from "@/components/ui/icons";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { listCategories } from "@/lib/categories/service";
 import { equipmentStatusValues } from "@/lib/equipment/schema";
 import { listEquipment } from "@/lib/equipment/service";
@@ -28,6 +33,7 @@ export default async function EquipmentPage({
   const statusParam = typeof params.status === "string" ? params.status : undefined;
   const categoryId = typeof params.categoryId === "string" ? params.categoryId : undefined;
   const status = isEquipmentStatus(statusParam) ? statusParam : undefined;
+  const hasFilters = Boolean(search || status || categoryId);
 
   const [equipmentList, categories] = await Promise.all([
     listEquipment({ search, status, categoryId }),
@@ -37,24 +43,25 @@ export default async function EquipmentPage({
   const filterKey = buildFilterKey([search, status, categoryId]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Equipment
-        </h1>
-        {isAdmin ? (
-          <Link href="/equipment/new" className={buttonClasses("primary")}>
-            New equipment
-          </Link>
-        ) : null}
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Equipment"
+        actions={
+          isAdmin ? (
+            <Link href="/equipment/new" className={buttonClasses("primary")}>
+              <PlusIcon className="h-4 w-4" />
+              New equipment
+            </Link>
+          ) : undefined
+        }
+      />
 
       <form
         key={filterKey}
         method="get"
-        className="flex flex-wrap items-end gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+        className={`flex flex-wrap items-end gap-3 p-4 ${CARD_CLASSES}`}
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="search">Search</Label>
           <Input
             id="search"
@@ -65,7 +72,7 @@ export default async function EquipmentPage({
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="status">Status</Label>
           <Select id="status" name="status" defaultValue={status ?? ""}>
             <option value="">All statuses</option>
@@ -77,7 +84,7 @@ export default async function EquipmentPage({
           </Select>
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="categoryId">Category</Label>
           <Select id="categoryId" name="categoryId" defaultValue={categoryId ?? ""}>
             <option value="">All categories</option>
@@ -92,74 +99,134 @@ export default async function EquipmentPage({
         <button type="submit" className={buttonClasses("secondary")}>
           Apply filters
         </button>
-        {search || status || categoryId ? (
-          <Link href="/equipment" className={buttonClasses("secondary")}>
-            Clear
+        {hasFilters ? (
+          <Link href="/equipment" className={buttonClasses("ghost")}>
+            Clear Filters
           </Link>
         ) : null}
       </form>
 
       {equipmentList.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          No equipment matches your filters.
-        </p>
+        <EmptyState
+          title="No equipment matches these filters"
+          description="Try a different search, or clear the filters to see everything."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-medium">Name</th>
-                <th scope="col" className="px-4 py-3 font-medium">Code</th>
-                <th scope="col" className="px-4 py-3 font-medium">Category</th>
-                <th scope="col" className="px-4 py-3 font-medium">Status</th>
-                <th scope="col" className="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {equipmentList.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-50">
-                    <Link href={`/equipment/${item.id}`} className="hover:underline">
+        <>
+          <div className="hidden overflow-x-auto rounded-card border border-border bg-surface shadow-card md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-surface-2 text-muted">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Code</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Name</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Category</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Location</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Status</th>
+                  <th scope="col" className="px-4 py-3 text-xs font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {equipmentList.map((item) => (
+                  <tr key={item.id} className="hover:bg-surface-2/60">
+                    <td className="px-4 py-3 font-mono text-[13px] text-muted">{item.code}</td>
+                    <td className="px-4 py-3 font-medium text-ink">
+                      <Link href={`/equipment/${item.id}`} className="hover:underline">
+                        {item.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-muted">
+                      {item.categoryId ? (categoryNameById.get(item.categoryId) ?? "—") : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted">{item.location ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <EquipmentStatusBadge status={item.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3.5">
+                        <Link
+                          href={`/equipment/${item.id}`}
+                          className="text-sm font-medium text-accent hover:underline"
+                        >
+                          View
+                        </Link>
+                        {isAdmin ? (
+                          <>
+                            <Link
+                              href={`/equipment/${item.id}/edit`}
+                              className="text-sm font-medium text-accent hover:underline"
+                            >
+                              Edit
+                            </Link>
+                            <ConfirmDeleteButton
+                              endpoint={`/api/equipment/${item.id}`}
+                              title="Delete equipment?"
+                              confirmMessage={`This removes "${item.name}" and its maintenance history. This cannot be undone.`}
+                            />
+                          </>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex flex-col gap-3 md:hidden">
+            {equipmentList.map((item) => (
+              <DataCard key={item.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Link
+                      href={`/equipment/${item.id}`}
+                      className="font-medium text-ink hover:underline"
+                    >
                       {item.name}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.code}</td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {item.categoryId ? (categoryNameById.get(item.categoryId) ?? "—") : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <EquipmentStatusBadge status={item.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                    <div className="font-mono text-[13px] text-muted">{item.code}</div>
+                  </div>
+                  <EquipmentStatusBadge status={item.status} />
+                </div>
+                <dl className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <dt className="text-xs text-muted">Category</dt>
+                    <dd className="text-ink">
+                      {item.categoryId ? (categoryNameById.get(item.categoryId) ?? "—") : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted">Location</dt>
+                    <dd className="text-ink">{item.location ?? "—"}</dd>
+                  </div>
+                </dl>
+                <div className="flex items-center gap-3.5 border-t border-border pt-3">
+                  <Link
+                    href={`/equipment/${item.id}`}
+                    className="text-sm font-medium text-accent hover:underline"
+                  >
+                    View
+                  </Link>
+                  {isAdmin ? (
+                    <>
                       <Link
-                        href={`/equipment/${item.id}#maintenance-history`}
-                        className="text-sm font-medium text-zinc-700 hover:underline dark:text-zinc-300"
+                        href={`/equipment/${item.id}/edit`}
+                        className="text-sm font-medium text-accent hover:underline"
                       >
-                        Maintenance
+                        Edit
                       </Link>
-                      {isAdmin ? (
-                        <>
-                          <Link
-                            href={`/equipment/${item.id}/edit`}
-                            className="text-sm font-medium text-zinc-700 hover:underline dark:text-zinc-300"
-                          >
-                            Edit
-                          </Link>
-                          <ConfirmDeleteButton
-                            endpoint={`/api/equipment/${item.id}`}
-                            confirmMessage={`Delete equipment "${item.name}"? This cannot be undone.`}
-                          />
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      <ConfirmDeleteButton
+                        endpoint={`/api/equipment/${item.id}`}
+                        title="Delete equipment?"
+                        confirmMessage={`This removes "${item.name}" and its maintenance history. This cannot be undone.`}
+                      />
+                    </>
+                  ) : null}
+                </div>
+              </DataCard>
+            ))}
+          </div>
+        </>
       )}
-    </div>
+    </PageContainer>
   );
 }

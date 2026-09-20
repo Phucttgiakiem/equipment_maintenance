@@ -1,4 +1,5 @@
 import type { maintenanceStatusEnum } from "@/db/schema";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type MaintenanceStatus = (typeof maintenanceStatusEnum.enumValues)[number];
 
@@ -10,19 +11,12 @@ const STATUS_LABELS: Record<MaintenanceStatus, string> = {
 };
 
 const STATUS_CLASSES: Record<MaintenanceStatus, string> = {
-  scheduled: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
-  in_progress: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  completed:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  cancelled: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+  scheduled: "bg-[#DCE8F7] text-[#1F4A8A] dark:bg-[#1E3350] dark:text-[#9CC3F5]",
+  in_progress: "bg-[#FAEAC6] text-[#7A4A00] dark:bg-[#40320F] dark:text-[#F2C15B]",
+  completed: "bg-[#DFF0E3] text-[#17602B] dark:bg-[#1F3A27] dark:text-[#8FD6A0]",
+  cancelled: "bg-[#E7E5DF] text-[#4A463E] dark:bg-[#2C2F2D] dark:text-[#B8BAB3]",
 };
 
 export function MaintenanceStatusBadge({ status }: { status: MaintenanceStatus }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[status]}`}
-    >
-      {STATUS_LABELS[status]}
-    </span>
-  );
+  return <StatusBadge label={STATUS_LABELS[status]} className={STATUS_CLASSES[status]} />;
 }

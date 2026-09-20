@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/auth";
-import { LogoutButton } from "@/components/logout-button";
-import { NavLink } from "@/components/nav-link";
+import { AppShell } from "@/components/app-shell";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
+  weight: ["400", "500", "600"],
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  weight: ["400", "500"],
   subsets: ["latin"],
 });
 
@@ -26,42 +27,24 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col bg-canvas text-ink">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-zinc-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white dark:focus:bg-zinc-50 dark:focus:text-zinc-900"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-fg"
         >
           Skip to main content
         </a>
         {session?.user ? (
-          <header className="flex items-center justify-between border-b border-zinc-200 px-6 py-3 dark:border-zinc-800">
-            <nav aria-label="Primary" className="flex items-center gap-6">
-              <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                Maintenance Management
-              </span>
-              <NavLink href="/">Dashboard</NavLink>
-              <NavLink href="/equipment">Equipment</NavLink>
-              {session.user.role === "admin" ? (
-                <>
-                  <NavLink href="/admin/categories">Categories</NavLink>
-                  <NavLink href="/admin/users">Users</NavLink>
-                </>
-              ) : null}
-            </nav>
-            <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
-              <span>
-                {session.user.name} ({session.user.role})
-              </span>
-              <NavLink href="/account/password">Change password</NavLink>
-              <LogoutButton />
-            </div>
-          </header>
-        ) : null}
-        <main id="main-content" className="flex flex-1 flex-col">
-          {children}
-        </main>
+          <AppShell user={{ name: session.user.name ?? "", role: session.user.role }}>
+            {children}
+          </AppShell>
+        ) : (
+          <main id="main-content" className="flex flex-1 flex-col">
+            {children}
+          </main>
+        )}
       </body>
     </html>
   );

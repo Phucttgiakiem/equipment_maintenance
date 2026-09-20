@@ -1,9 +1,12 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ConfirmDeleteButton } from "@/components/ui/confirm-delete-button";
 import { MaintenanceForm } from "@/components/maintenance/maintenance-form";
 import { MaintenanceStatusBadge } from "@/components/maintenance/status-badge";
+import { MaintenanceStepTracker } from "@/components/maintenance/step-tracker";
+import { Card } from "@/components/ui/card";
+import { OutlinePill } from "@/components/ui/status-badge";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { getEquipmentById } from "@/lib/equipment/service";
 import { getMaintenanceById } from "@/lib/maintenance/service";
 import { listActiveTechnicians } from "@/lib/users/service";
@@ -24,60 +27,92 @@ export default async function MaintenanceDetailPage({
     notFound();
   }
 
-  const equipment = await getEquipmentById(record.equipmentId);
+  const [equipment, technicians] = await Promise.all([
+    getEquipmentById(record.equipmentId),
+    listActiveTechnicians(),
+  ]);
   const isAdmin = session.user.role === "admin";
   const isAssignedTechnician = record.technicianId === session.user.id;
-
-  const technicians = isAdmin ? await listActiveTechnicians() : [];
+  const canEdit = isAdmin || isAssignedTechnician;
+  const technicianName = record.technicianId
+    ? (technicians.find((t) => t.id === record.technicianId)?.name ?? "Unassigned technician")
+    : "Unassigned";
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <div className="flex items-start justify-between">
-        <div>
-          {equipment ? (
-            <Link
-              href={`/equipment/${equipment.id}`}
-              className="text-sm text-zinc-500 hover:underline dark:text-zinc-400"
-            >
-              {equipment.name}
-            </Link>
-          ) : null}
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-            Maintenance record
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <MaintenanceStatusBadge status={record.status} />
-          {isAdmin ? (
+    <PageContainer>
+      <PageHeader
+        back={equipment ? { href: `/equipment/${equipment.id}`, label: equipment.name } : undefined}
+        title={record.description}
+        meta={
+          <>
+            {equipment ? (
+              <span className="font-mono text-[13px] text-muted">
+                {equipment.code} &middot; {equipment.name}
+              </span>
+            ) : null}
+            <MaintenanceStatusBadge status={record.status} />
+            <OutlinePill label={record.type.replace(/_/g, " ")} />
+          </>
+        }
+        actions={
+          isAdmin ? (
             <ConfirmDeleteButton
+              variant="button"
               endpoint={`/api/maintenance/${record.id}`}
-              confirmMessage="Delete this maintenance record? This cannot be undone."
+              title="Delete maintenance record?"
+              confirmMessage="This removes the record from the equipment's history. This cannot be undone."
               redirectTo={equipment ? `/equipment/${equipment.id}` : "/equipment"}
             />
-          ) : null}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
-      {isAdmin ? (
-        <MaintenanceForm mode="edit-full" equipmentId={record.equipmentId} technicians={technicians} record={record} />
-      ) : isAssignedTechnician ? (
-        <MaintenanceForm mode="edit-self" record={record} />
-      ) : (
-        <div className="flex flex-col gap-4 rounded-lg border border-zinc-200 bg-white p-6 text-sm dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="text-zinc-900 dark:text-zinc-50">{record.description}</p>
-          <dl className="grid grid-cols-2 gap-4 text-zinc-600 dark:text-zinc-400">
-            <div>
-              <dt className="font-medium text-zinc-900 dark:text-zinc-50">Type</dt>
-              <dd>{record.type.replace(/_/g, " ")}</dd>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <Card className={`flex flex-col gap-5 p-5 ${canEdit ? "lg:col-span-3" : "lg:col-span-5"}`}>
+          <h2 className="text-base font-semibold text-ink">Details</h2>
+          <MaintenanceStepTracker status={record.status} />
+          <dl className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs text-muted">Technician</dt>
+              <dd className="text-sm text-ink">{technicianName}</dd>
             </div>
-            <div>
-              <dt className="font-medium text-zinc-900 dark:text-zinc-50">Scheduled date</dt>
-              <dd>{record.scheduledDate.toLocaleDateString()}</dd>
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs text-muted">Scheduled</dt>
+              <dd className="font-mono text-[13px] text-ink">
+                {record.scheduledDate.toLocaleDateString()}
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs text-muted">Completed</dt>
+              <dd className="font-mono text-[13px] text-ink">
+                {record.completedDate ? record.completedDate.toLocaleDateString() : "—"}
+              </dd>
             </div>
           </dl>
-          {record.notes ? <p>{record.notes}</p> : null}
-        </div>
-      )}
-    </div>
+          {record.notes ? (
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs text-muted">Notes</dt>
+              <dd className="text-sm text-ink">{record.notes}</dd>
+            </div>
+          ) : null}
+        </Card>
+
+        {canEdit ? (
+          <Card className="flex flex-col gap-4 p-5 lg:col-span-2">
+            <h2 className="text-base font-semibold text-ink">Update</h2>
+            {isAdmin ? (
+              <MaintenanceForm
+                mode="edit-full"
+                equipmentId={record.equipmentId}
+                technicians={technicians}
+                record={record}
+              />
+            ) : (
+              <MaintenanceForm mode="edit-self" record={record} />
+            )}
+          </Card>
+        ) : null}
+      </div>
+    </PageContainer>
   );
 }

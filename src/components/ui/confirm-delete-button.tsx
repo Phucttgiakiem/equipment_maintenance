@@ -2,25 +2,30 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { buttonClasses } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export function ConfirmDeleteButton({
   endpoint,
+  title = "Delete this item?",
   confirmMessage,
   redirectTo,
+  variant = "link",
+  label = "Delete",
 }: {
   endpoint: string;
+  title?: string;
   confirmMessage: string;
   redirectTo?: string;
+  variant?: "link" | "button";
+  label?: string;
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete() {
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
-
     setIsDeleting(true);
     setError(null);
 
@@ -39,17 +44,36 @@ export function ConfirmDeleteButton({
     router.refresh();
   }
 
+  function closeDialog() {
+    setOpen(false);
+    setError(null);
+  }
+
   return (
     <div className="flex flex-col items-start gap-1">
       <button
         type="button"
-        onClick={handleDelete}
+        onClick={() => setOpen(true)}
         disabled={isDeleting}
-        className="text-sm font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
+        className={
+          variant === "button"
+            ? `${buttonClasses("secondary")} text-danger`
+            : "text-sm font-medium text-danger hover:underline disabled:cursor-not-allowed disabled:opacity-45"
+        }
       >
-        {isDeleting ? "Deleting..." : "Delete"}
+        {isDeleting ? "Deleting..." : label}
       </button>
-      {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+      <ConfirmDialog
+        open={open}
+        title={title}
+        message={confirmMessage}
+        confirmLabel="Delete"
+        isSubmitting={isDeleting}
+        errorTitle="Cannot delete"
+        errorMessage={error}
+        onConfirm={handleDelete}
+        onCancel={closeDialog}
+      />
     </div>
   );
 }

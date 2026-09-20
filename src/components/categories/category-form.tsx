@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { FormField, Input } from "@/components/ui/form-controls";
 
 export type CategoryFormValues = {
@@ -59,15 +60,18 @@ export function CategoryForm({ category }: { category?: CategoryFormValues }) {
       </FormField>
 
       {formError ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-sm text-danger-hover">
           {formError}
         </p>
       ) : null}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : isEditing ? "Save changes" : "Create category"}
         </Button>
+        <Link href="/admin/categories" className={buttonClasses("secondary")}>
+          Cancel
+        </Link>
       </div>
     </form>
   );

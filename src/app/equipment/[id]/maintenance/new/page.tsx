@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { MaintenanceForm } from "@/components/maintenance/maintenance-form";
+import { Card } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { getEquipmentById } from "@/lib/equipment/service";
 import { listActiveTechnicians } from "@/lib/users/service";
 
@@ -23,14 +25,14 @@ export default async function NewMaintenancePage({
   const technicians = await listActiveTechnicians();
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <div>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">{equipment.name}</p>
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          New maintenance record
-        </h1>
-      </div>
-      <MaintenanceForm mode="create" equipmentId={equipment.id} technicians={technicians} />
-    </div>
+    <PageContainer>
+      <PageHeader
+        title="New maintenance record"
+        back={{ href: `/equipment/${equipment.id}`, label: equipment.name }}
+      />
+      <Card className="max-w-[760px] p-6">
+        <MaintenanceForm mode="create" equipmentId={equipment.id} technicians={technicians} />
+      </Card>
+    </PageContainer>
   );
 }

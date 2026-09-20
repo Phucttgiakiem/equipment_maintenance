@@ -4,6 +4,9 @@ import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { FormField, Input } from "@/components/ui/form-controls";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export default function LoginPage() {
@@ -47,24 +50,20 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-50 px-4 dark:bg-black">
-      <div className="w-full max-w-sm rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Sign in
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Maintenance Management System
-        </p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-canvas px-4 py-10">
+      <div className="flex items-center gap-2.5">
+        <span aria-hidden="true" className="h-[30px] w-[30px] rounded-control bg-accent" />
+        <span className="text-lg font-semibold text-ink">Maintenance</span>
+      </div>
+
+      <div className="w-full max-w-[400px] rounded-dialog border border-border bg-surface p-7 shadow-card">
+        <h1 className="text-[22px] font-semibold text-ink">Sign in</h1>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Email
-            </label>
-            <input
+          {error ? <Alert tone="danger">{error}</Alert> : null}
+
+          <FormField label="Email" htmlFor="email">
+            <Input
               id="email"
               name="email"
               type="email"
@@ -72,17 +71,10 @@ function LoginForm() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
             />
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-            >
-              Password
-            </label>
+          <FormField label="Password" htmlFor="password">
             <PasswordInput
               id="password"
               name="password"
@@ -91,28 +83,15 @@ function LoginForm() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-          </div>
+          </FormField>
 
-          {error ? (
-            <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
-          ) : null}
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="mt-2 rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
+          <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
             {isSubmitting ? "Signing in..." : "Sign in"}
-          </button>
+          </Button>
 
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Need an account?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
-            >
+          <p className="text-center text-[13px] text-muted">
+            No account?{" "}
+            <Link href="/register" className="font-medium text-accent hover:underline">
               Register
             </Link>
           </p>

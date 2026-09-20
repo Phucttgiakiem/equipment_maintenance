@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { FormField, Input, Select, Textarea } from "@/components/ui/form-controls";
 import { equipmentStatusValues } from "@/lib/equipment/schema";
 
@@ -90,25 +91,25 @@ export function EquipmentForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <FormField label="Name" htmlFor="name" error={fieldErrors.name?.[0]}>
-        <Input
-          id="name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          required
-        />
-      </FormField>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FormField label="Name" htmlFor="name" error={fieldErrors.name?.[0]}>
+          <Input
+            id="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            required
+          />
+        </FormField>
 
-      <FormField label="Code" htmlFor="code" error={fieldErrors.code?.[0]}>
-        <Input
-          id="code"
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-          required
-        />
-      </FormField>
+        <FormField label="Code" htmlFor="code" error={fieldErrors.code?.[0]}>
+          <Input
+            id="code"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            required
+          />
+        </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
         <FormField label="Category" htmlFor="categoryId" error={fieldErrors.categoryId?.[0]}>
           <Select
             id="categoryId"
@@ -131,9 +132,7 @@ export function EquipmentForm({
             onChange={(event) => setLocation(event.target.value)}
           />
         </FormField>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <FormField label="Status" htmlFor="status" error={fieldErrors.status?.[0]}>
           <Select
             id="status"
@@ -160,27 +159,32 @@ export function EquipmentForm({
             onChange={(event) => setPurchaseDate(event.target.value)}
           />
         </FormField>
+
+        <div className="sm:col-span-2">
+          <FormField label="Notes" htmlFor="notes" error={fieldErrors.notes?.[0]}>
+            <Textarea
+              id="notes"
+              rows={4}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
+          </FormField>
+        </div>
       </div>
 
-      <FormField label="Notes" htmlFor="notes" error={fieldErrors.notes?.[0]}>
-        <Textarea
-          id="notes"
-          rows={4}
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
-        />
-      </FormField>
-
       {formError ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-sm text-danger-hover">
           {formError}
         </p>
       ) : null}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : isEditing ? "Save changes" : "Create equipment"}
         </Button>
+        <Link href="/equipment" className={buttonClasses("secondary")}>
+          Cancel
+        </Link>
       </div>
     </form>
   );

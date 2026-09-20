@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CategoryForm } from "@/components/categories/category-form";
+import { Card } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 
 export default async function NewCategoryPage() {
   const session = await auth();
@@ -9,11 +11,11 @@ export default async function NewCategoryPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        New category
-      </h1>
-      <CategoryForm />
-    </div>
+    <PageContainer>
+      <PageHeader title="New category" back={{ href: "/admin/categories", label: "Categories" }} />
+      <Card className="max-w-[480px] p-6">
+        <CategoryForm />
+      </Card>
+    </PageContainer>
   );
 }

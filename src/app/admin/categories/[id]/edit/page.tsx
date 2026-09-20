@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { CategoryForm } from "@/components/categories/category-form";
+import { Card } from "@/components/ui/card";
+import { PageContainer, PageHeader } from "@/components/ui/page";
 import { getCategoryById } from "@/lib/categories/service";
 
 export default async function EditCategoryPage({
@@ -20,11 +22,11 @@ export default async function EditCategoryPage({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Edit category
-      </h1>
-      <CategoryForm category={category} />
-    </div>
+    <PageContainer>
+      <PageHeader title="Edit category" back={{ href: "/admin/categories", label: "Categories" }} />
+      <Card className="max-w-[480px] p-6">
+        <CategoryForm category={category} />
+      </Card>
+    </PageContainer>
   );
 }

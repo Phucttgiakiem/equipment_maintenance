@@ -28,6 +28,7 @@ export type RecentActivityItem = {
   id: string;
   equipmentId: string;
   equipmentName: string;
+  equipmentCode: string;
   type: MaintenanceType;
   status: MaintenanceStatus;
   technicianName: string | null;
@@ -90,6 +91,7 @@ export async function getRecentActivity(
       id: maintenanceRecords.id,
       equipmentId: maintenanceRecords.equipmentId,
       equipmentName: equipment.name,
+      equipmentCode: equipment.code,
       type: maintenanceRecords.type,
       status: maintenanceRecords.status,
       technicianName: users.name,
