@@ -6,6 +6,7 @@ import { Label, Select } from "@/components/ui/form-controls";
 import { RegistrationStatusBadge } from "@/components/users/registration-status-badge";
 import { ResetPasswordButton } from "@/components/users/reset-password-button";
 import { UserActionButton } from "@/components/users/user-action-button";
+import { buildFilterKey } from "@/lib/filters";
 import { registrationStatusValues, userRoleValues } from "@/lib/users/schema";
 import { listUsers } from "@/lib/users/service";
 
@@ -44,12 +45,14 @@ export default async function AdminUsersPage({
     isActiveParam === "true" ? true : isActiveParam === "false" ? false : undefined;
 
   const userList = await listUsers({ registrationStatus, role, isActive });
+  const filterKey = buildFilterKey([registrationStatus, role, isActiveParam]);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-8">
       <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Users</h1>
 
       <form
+        key={filterKey}
         method="get"
         className="flex flex-wrap items-end gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
       >
