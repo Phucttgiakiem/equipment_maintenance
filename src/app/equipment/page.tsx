@@ -7,6 +7,7 @@ import { EquipmentStatusBadge } from "@/components/equipment/status-badge";
 import { listCategories } from "@/lib/categories/service";
 import { equipmentStatusValues } from "@/lib/equipment/schema";
 import { listEquipment } from "@/lib/equipment/service";
+import { buildFilterKey } from "@/lib/filters";
 
 type EquipmentStatus = (typeof equipmentStatusValues)[number];
 
@@ -33,6 +34,7 @@ export default async function EquipmentPage({
     listCategories(),
   ]);
   const categoryNameById = new Map(categories.map((c) => [c.id, c.name]));
+  const filterKey = buildFilterKey([search, status, categoryId]);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-6 py-8">
@@ -48,6 +50,7 @@ export default async function EquipmentPage({
       </div>
 
       <form
+        key={filterKey}
         method="get"
         className="flex flex-wrap items-end gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
       >
