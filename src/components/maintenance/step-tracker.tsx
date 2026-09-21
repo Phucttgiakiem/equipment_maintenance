@@ -12,11 +12,12 @@ export function MaintenanceStepTracker({ status }: { status: string }) {
   }
 
   const currentIndex = STEPS.findIndex((step) => step.key === status);
+  const isFinalStep = currentIndex === STEPS.length - 1;
 
   return (
     <div className="flex items-start">
       {STEPS.map((step, index) => {
-        const done = currentIndex >= 0 && index < currentIndex;
+        const done = currentIndex >= 0 && (index < currentIndex || (isFinalStep && index === currentIndex));
         const current = index === currentIndex;
         return (
           <div key={step.key} className="flex flex-1 items-center last:flex-none">
