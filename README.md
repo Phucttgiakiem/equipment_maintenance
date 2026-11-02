@@ -34,3 +34,18 @@ Create a `.env.local` file in the root directory and define the following variab
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
 NEXT_PUBLIC_APP_ENV=development
 
+## Getting Started (Local Setup)
+
+You can run this project locally using either **Docker** or standard **Node.js**.
+
+### Option 1: Running with Docker (Recommended)
+
+Ensure you have **Docker Desktop** installed and running on your machine.
+
+```bash
+# 1. Clone the repository
+git clone [https://github.com/](https://github.com/)[your-github-username]/[your-repo-name].git
+cd [your-repo-name]
+
+# 2. Build and start the container
+docker-compose up --build
